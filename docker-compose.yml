@@ -8,4 +8,6 @@ services:
       - .env
     volumes:
       - ./projects.db:/app/projects.db
+      # Em produção, mapeie o .env de /var/www/.env (opcional, se não quiser duplicar)
+      # - /var/www/.env:/app/.env:ro
     restart: unless-stopped

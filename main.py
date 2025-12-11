@@ -8,7 +8,12 @@ from sqlmodel import Session, select
 from database import engine, create_db_and_tables
 from models import Project
 
-load_dotenv()
+# Carrega .env de múltiplos locais (em ordem de prioridade)
+# 1. /var/www/.env (produção em servidor)
+# 2. .env (desenvolvimento local)
+load_dotenv("/var/www/.env", override=False)
+load_dotenv(".env", override=False)
+
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "changeme")
 
 app = FastAPI(title="Linktree-like API")
