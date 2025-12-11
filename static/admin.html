@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Admin - Meus Projetos</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    body{font-family:system-ui,Segoe UI,Arial;max-width:900px;margin:24px auto;padding:0 16px}
+    input,textarea{width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:6px}
+    button{padding:8px 12px;margin:6px 2px}
+    .project{border:1px solid #eee;padding:12px;border-radius:8px;margin:8px 0;background:#fafafa}
+  </style>
+</head>
+<body>
+  <h1>Admin — Gerenciar Projetos</h1>
+  <div>
+    <label>Token Admin: <input id="token" type="text" placeholder="Insira o token admin"/></label>
+  </div>
+  <h2>Criar / Editar</h2>
+  <div>
+    <input id="title" placeholder="Título"/>
+    <textarea id="description" placeholder="Descrição"></textarea>
+    <input id="url" placeholder="URL (https://...)"/>
+    <button id="createBtn">Criar</button>
+    <button id="updateBtn" disabled>Atualizar</button>
+    <button id="clearBtn">Limpar</button>
+  </div>
+  <h2>Projetos</h2>
+  <div id="projectsList">Carregando...</div>
+  <p><a href="/">Ir para página pública</a></p>
+  <script src="/static/js/app.js"></script>
+  <script>
+    // admin init
+    (async function(){ await initAdmin(); })();
+  </script>
+</body>
+</html>
