@@ -1,37 +1,97 @@
 <!doctype html>
-<html>
+<html lang="pt-BR">
+
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
   <title>Admin - Meus Projetos</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <style>
-    body{font-family:system-ui,Segoe UI,Arial;max-width:900px;margin:24px auto;padding:0 16px}
-    input,textarea{width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:6px}
-    button{padding:8px 12px;margin:6px 2px}
-    .project{border:1px solid #eee;padding:12px;border-radius:8px;margin:8px 0;background:#fafafa}
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <h1>Admin — Gerenciar Projetos</h1>
-  <div>
-    <label>Token Admin: <input id="token" type="text" placeholder="Insira o token admin"/></label>
+  <div class="container">
+    <h1>Gerenciar Projetos</h1>
+
+    <div class="form-group">
+      <label for="token">Token Admin</label>
+      <input id="token" type="password" placeholder="Insira o token admin" />
+    </div>
+
+    <h2>Criar / Editar Projeto</h2>
+    <div class="project-card" style="border-color: var(--primary-color);">
+      <div class="form-group">
+        <input id="title" type="text" placeholder="Título do Projeto" />
+      </div>
+      <div class="form-group">
+        <textarea id="description" placeholder="Descrição do Projeto"></textarea>
+      </div>
+      <div class="form-group">
+        <input id="url" type="text" placeholder="URL (https://...)" />
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button id="createBtn">Criar Projeto</button>
+        <button id="updateBtn" disabled class="secondary">Atualizar</button>
+        <button id="clearBtn" class="secondary"
+          style="background: transparent; color: #6c757d; border: 1px solid #dee2e6;">Limpar</button>
+      </div>
+    </div>
+
+    <h2>Lista de Projetos</h2>
+    <div id="projectsList">
+      <p style="text-align: center; color: #6c757d;">Carregando...</p>
+    </div>
+
+    <a href="/" class="nav-link">← Voltar para página pública</a>
   </div>
-  <h2>Criar / Editar</h2>
-  <div>
-    <input id="title" placeholder="Título"/>
-    <textarea id="description" placeholder="Descrição"></textarea>
-    <input id="url" placeholder="URL (https://...)"/>
-    <button id="createBtn">Criar</button>
-    <button id="updateBtn" disabled>Atualizar</button>
-    <button id="clearBtn">Limpar</button>
-  </div>
-  <h2>Projetos</h2>
-  <div id="projectsList">Carregando...</div>
-  <p><a href="/">Ir para página pública</a></p>
+
   <script src="/static/js/app.js"></script>
   <script>
+    // Override loadProjectsForAdmin to use new classes
+    const originalLoadProjectsForAdmin = loadProjectsForAdmin;
+    loadProjectsForAdmin = async function () {
+      const projects = await fetchProjects();
+      const root = document.getElementById('projectsList');
+      if (!projects || projects.length === 0) {
+        root.innerHTML = '<p style="text-align: center;">Nenhum projeto encontrado.</p>';
+        return;
+      }
+      root.innerHTML = '';
+      projects.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'project';
+        div.innerHTML = `
+          <span class="project-title">${escapeHtml(p.title)}</span>
+          <p class="project-desc">${escapeHtml(p.description || '')}</p>
+          <p><a href="${p.url}" target="_blank" style="font-size: 0.9rem;">${p.url}</a></p>
+          <div class="admin-controls">
+            <button data-id="${p.id}" class="edit secondary" style="padding: 6px 12px; font-size: 0.9rem;">Editar</button>
+            <button data-id="${p.id}" class="delete" style="padding: 6px 12px; font-size: 0.9rem;">Apagar</button>
+          </div>
+        `;
+        root.appendChild(div);
+      });
+
+      // Re-attach event listeners (logic copied from app.js but adapted for new DOM elements if needed)
+      // Since we replaced innerHTML, we need to attach listeners to the new buttons
+      root.querySelectorAll('.edit').forEach(btn => btn.addEventListener('click', e => {
+        const id = e.target.dataset.id; fillFormForEdit(id);
+        // Scroll to form
+        document.getElementById('title').scrollIntoView({ behavior: 'smooth' });
+      }));
+      root.querySelectorAll('.delete').forEach(btn => btn.addEventListener('click', async e => {
+        const id = e.target.dataset.id;
+        const token = document.getElementById('token').value.trim();
+        if (!token) { alert('Por favor, insira o Token Admin primeiro.'); return; }
+        if (!confirm('Tem certeza que deseja excluir este projeto?')) return;
+        await deleteProjectById(id, token);
+        await loadProjectsForAdmin();
+      }));
+    };
+
     // admin init
-    (async function(){ await initAdmin(); })();
+    (async function () { await initAdmin(); })();
   </script>
 </body>
+
 </html>
