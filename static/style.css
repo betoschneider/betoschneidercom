@@ -5,8 +5,8 @@
   --text-color: #333;
   --card-bg: #ffffff;
   --border-color: #e9ecef;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --radius: 12px;
 }
 
@@ -58,7 +58,8 @@ a:hover {
 }
 
 /* Cards */
-.project-card, .project {
+.project-card,
+.project {
   background: var(--card-bg);
   border-radius: var(--radius);
   padding: 20px;
@@ -66,13 +67,15 @@ a:hover {
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s, box-shadow 0.2s;
   border: 1px solid var(--border-color);
-  display: block; /* For anchor tags acting as cards */
+  display: block;
+  /* For anchor tags acting as cards */
 }
 
 a.project-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  color: inherit; /* Prevent text color change on hover for the whole card */
+  color: inherit;
+  /* Prevent text color change on hover for the whole card */
 }
 
 .project-title {
@@ -102,6 +105,7 @@ label {
 }
 
 input[type="text"],
+input[type="password"],
 textarea {
   width: 100%;
   padding: 12px;
@@ -112,6 +116,7 @@ textarea {
 }
 
 input[type="text"]:focus,
+input[type="password"]:focus,
 textarea:focus {
   outline: none;
   border-color: var(--primary-color);
@@ -181,6 +186,7 @@ button.delete:hover {
 }
 
 /* Loading State */
-#projects, #projectsList {
+#projects,
+#projectsList {
   min-height: 200px;
 }
