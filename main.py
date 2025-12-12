@@ -32,6 +32,20 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+    # Auto-migration for repo_url
+    import sqlite3
+    try:
+        conn = sqlite3.connect('projects.db')
+        cursor = conn.cursor()
+        cursor.execute("ALTER TABLE project ADD COLUMN repo_url TEXT")
+        conn.commit()
+        print("Auto-migration: Added repo_url column.")
+        conn.close()
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" not in str(e):
+            print(f"Auto-migration error: {e}")
+    except Exception as e:
+        print(f"Auto-migration unexpected error: {e}")
 
 
 @app.get("/", include_in_schema=False)
