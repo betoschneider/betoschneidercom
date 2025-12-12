@@ -19,9 +19,9 @@ $env:ADMIN_TOKEN = "seu_token_aqui"
 uvicorn main:app --reload
 ```
 
-Acesse:
-- Página pública: http://127.0.0.1:8000/
-- Admin: http://127.0.0.1:8000/admin (insira o token admin na caixa)
+Acesse (Docker):
+- Página pública: http://127.0.0.1:8080/
+- Admin: http://127.0.0.1:8080/admin (insira o token admin na caixa)
 
 Observações
 - O token admin é lido da variável de ambiente `ADMIN_TOKEN` (padrão `changeme`).
@@ -68,7 +68,7 @@ Deploy em Produção (/var/www/html)
 /var/www/
 ├── .env                      (arquivo .env fora do html, não exposto)
 ├── html/
-│   └── (FastAPI app roda em localhost:8000 via systemd/docker)
+│   └── (FastAPI app roda em localhost:8000 via systemd — se usar Docker, o host mapeia para 8080 por padrão)
 └── projetos.db              (opcional: banco fora de html)
 ```
 
@@ -107,7 +107,8 @@ server {
     server_name seu_dominio.com;
     
     location / {
-        proxy_pass http://localhost:8000;
+      # Se você estiver rodando via Docker (padrão deste projeto), use o host:porta mapeado:
+      proxy_pass http://localhost:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
