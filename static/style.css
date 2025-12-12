@@ -190,3 +190,19 @@ button.delete:hover {
 #projectsList {
   min-height: 200px;
 }
+
+/* Footer */
+footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.9rem;
+  padding-bottom: 20px;
+}
+
+footer a {
+  color: var(--primary-color);
+  font-weight: 500;
+}
