@@ -11,8 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app
 
 # Cria usuário não-root (opcional)
-RUN useradd -m appuser || true
-USER appuser
+# RUN useradd -m appuser || true
+# USER appuser
 
 EXPOSE 8001
 
