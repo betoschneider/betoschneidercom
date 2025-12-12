@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/betoschneidercom || Exit
+            cd /var/www/betoschneidercom || exit
             echo "📥 Atualizando código..."
             git fetch origin main
             git reset --hard origin/main
