@@ -74,6 +74,7 @@
           <span class="project-title">${escapeHtml(p.title)}</span>
           <p class="project-desc">${escapeHtml(p.description || '')}</p>
           <p><a href="${p.url}" target="_blank" style="font-size: 0.9rem;">${p.url}</a></p>
+          ${p.repo_url ? `<p><a href="${p.repo_url}" target="_blank" style="font-size: 0.9rem;">Repo: ${p.repo_url}</a></p>` : ''}
           <div class="admin-controls">
             <button data-id="${p.id}" class="edit secondary" style="padding: 6px 12px; font-size: 0.9rem;">Editar</button>
             <button data-id="${p.id}" class="delete" style="padding: 6px 12px; font-size: 0.9rem;">Apagar</button>
