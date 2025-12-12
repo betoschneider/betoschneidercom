@@ -74,6 +74,7 @@ def update_project(project_id: int, project: Project):
         db.title = project.title
         db.description = project.description
         db.url = project.url
+        db.repo_url = project.repo_url
         session.add(db)
         session.commit()
         session.refresh(db)

@@ -7,3 +7,4 @@ class Project(SQLModel, table=True):
     title: str
     description: Optional[str] = None
     url: str
+    repo_url: Optional[str] = None
