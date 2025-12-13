@@ -36,6 +36,7 @@
         <a href="${p.url}" target="_blank" class="project-card">
           <span class="project-title">${escapeHtml(p.title)}</span>
           <p class="project-desc">${escapeHtml(p.description || '')}</p>
+          ${p.repo_url ? `<div style="margin-top: 10px; font-size: 0.9em; color: var(--primary-color);">[Código Fonte]</div>` : ''}
         </a>
       `).join('');
     };
