@@ -48,12 +48,17 @@
       const projects = await fetchProjects();
       renderPublic(projects);
 
-      // Track visit
-      try {
-        await fetch('/visit', { method: 'POST' });
-        console.log('Visit tracked');
-      } catch (e) {
-        console.error('Tracking error', e);
+      // Track visit (only once per session)
+      if (!sessionStorage.getItem('visit_tracked')) {
+        try {
+          await fetch('/visit', { method: 'POST' });
+          sessionStorage.setItem('visit_tracked', 'true');
+          console.log('Visit tracked');
+        } catch (e) {
+          console.error('Tracking error', e);
+        }
+      } else {
+        console.log('Visit already tracked in this session');
       }
     })();
   </script>
