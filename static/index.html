@@ -44,7 +44,18 @@
     };
 
     // render public list
-    (async function () { const projects = await fetchProjects(); renderPublic(projects); })();
+    (async function () {
+      const projects = await fetchProjects();
+      renderPublic(projects);
+
+      // Track visit
+      try {
+        await fetch('/visit', { method: 'POST' });
+        console.log('Visit tracked');
+      } catch (e) {
+        console.error('Tracking error', e);
+      }
+    })();
   </script>
 </body>
 
