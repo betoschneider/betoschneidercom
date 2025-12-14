@@ -1,12 +1,14 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Header, Depends
+from datetime import datetime, timedelta
+from typing import List, Dict, Any
+from fastapi import FastAPI, HTTPException, Header, Depends, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from database import engine, create_db_and_tables
-from models import Project
+from models import Project, Visitor
 
 # Carrega .env de múltiplos locais (em ordem de prioridade)
 # 1. /var/www/.env (produção em servidor)
@@ -104,3 +106,61 @@ def delete_project(project_id: int):
         session.delete(db)
         session.commit()
         return {"ok": True}
+
+
+@app.post("/visit")
+def track_visit(request: Request, user_agent: str = Header(None)):
+    if not user_agent:
+        user_agent = "Unknown"
+    
+    device_type = "PC"
+    ua_lower = user_agent.lower()
+    if "mobile" in ua_lower or "android" in ua_lower or "iphone" in ua_lower:
+        device_type = "Smartphone"
+        
+    visitor = Visitor(
+        device_type=device_type,
+        user_agent=user_agent
+    )
+    
+    with Session(engine) as session:
+        session.add(visitor)
+        session.commit()
+    
+    return {"status": "ok"}
+
+
+@app.get("/admin/stats", dependencies=[Depends(check_admin_token)])
+def get_stats():
+    with Session(engine) as session:
+        # Get stats for the last 90 days
+        ninety_days_ago = datetime.utcnow() - timedelta(days=90)
+        
+        # Determine the correct date function based on available functions or simple filtering
+        # SQLite doesn't have sophisticated date functions in all versions, keeping it simple
+        # Grouping by day in python to avoid DB complexity issues
+        
+        statement = select(Visitor).where(Visitor.timestamp >= ninety_days_ago)
+        results = session.exec(statement).all()
+        
+        stats: Dict[str, Any] = {}
+        
+        for visitor in results:
+            date_str = visitor.timestamp.strftime("%Y-%m-%d")
+            if date_str not in stats:
+                stats[date_str] = {"total": 0, "pc": 0, "smartphone": 0}
+            
+            stats[date_str]["total"] += 1
+            if visitor.device_type == "Smartphone":
+                stats[date_str]["smartphone"] += 1
+            else:
+                stats[date_str]["pc"] += 1
+                
+        # Convert to list for chart/table
+        sorted_stats = []
+        for date_key in sorted(stats.keys()):
+            entry = stats[date_key]
+            entry["date"] = date_key
+            sorted_stats.append(entry)
+            
+        return sorted_stats

@@ -43,6 +43,31 @@
     </div>
 
     <a href="/" class="nav-link" style="margin-top: 0; margin-bottom: 20px;">← Voltar para página pública</a>
+
+    <h2>Estatísticas de Acesso (Últimos 90 dias)</h2>
+    <div style="margin-bottom: 10px;">
+      <button id="loadStatsBtn" class="secondary" style="padding: 5px 10px; font-size: 0.9em;">Carregar / Atualizar
+        Estatísticas</button>
+    </div>
+
+    <div id="statsContainer" class="project-card" style="border-color: var(--primary-color); display: none;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid #dee2e6;">
+            <th style="padding: 8px;">Data</th>
+            <th style="padding: 8px;">Total</th>
+            <th style="padding: 8px;">PC</th>
+            <th style="padding: 8px;">Smartphone</th>
+          </tr>
+        </thead>
+        <tbody id="statsTableBody">
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 10px;">Carregando estatísticas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <h2>Lista de Projetos</h2>
     <div id="projectsList">
       <p style="text-align: center; color: #6c757d;">Carregando...</p>
@@ -101,7 +126,65 @@
     };
 
     // admin init
-    (async function () { await initAdmin(); })();
+    (async function () {
+      await initAdmin();
+
+      // Setup stats button
+      const loadStatsBtn = document.getElementById('loadStatsBtn');
+      if (loadStatsBtn) {
+        loadStatsBtn.addEventListener('click', loadStats);
+      }
+    })();
+
+    async function loadStats() {
+      const token = document.getElementById('token').value.trim();
+      if (!token) {
+        alert('Por favor, insira o token admin para ver as estatísticas.');
+        return;
+      }
+
+      const tbody = document.getElementById('statsTableBody');
+      const container = document.getElementById('statsContainer');
+
+      try {
+        const res = await fetch('/admin/stats', {
+          headers: { 'X-Admin-Token': token }
+        });
+
+        if (!res.ok) {
+          if (res.status === 401) throw new Error('Token inválido');
+          throw new Error('Erro ao carregar dados');
+        }
+
+        const data = await res.json();
+
+        // Show container on success
+        container.style.display = 'block';
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 10px;">Nenhuma visita registrada nos últimos 90 dias.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.sort((a, b) => b.date.localeCompare(a.date)).map(row => `
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 8px;">${row.date.split('-').reverse().join('/')}</td>
+            <td style="padding: 8px; font-weight: bold;">${row.total}</td>
+            <td style="padding: 8px; color: #666;">${row.pc}</td>
+            <td style="padding: 8px; color: #666;">${row.smartphone}</td>
+          </tr>
+        `).join('');
+
+      } catch (err) {
+        alert(err.message);
+        // Ensure it stays hidden or hide it if it was visible? 
+        // Let's keep previous state or hide? User wants it hidden until verified.
+        // If error, likely token is wrong, so maybe hide it.
+        container.style.display = 'none';
+      }
+    }
+
+    // Changing approach: adding logic to `initAdmin` to handle stats loading button.
   </script>
 </body>
 
