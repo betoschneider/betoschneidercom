@@ -2,3 +2,4 @@ venv/
 projects.db
 .env
 __pycache__/
+projects.db.bak

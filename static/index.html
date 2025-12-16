@@ -33,15 +33,34 @@
         return;
       }
       root.innerHTML = projects.map(p => `
-        <a href="${p.url}" target="_blank" class="project-card">
-          <span class="project-title">${escapeHtml(p.title)}</span>
-          <p class="project-desc">${escapeHtml(p.description || '')}</p>
-        </a>
+        <div class="project-card" style="cursor: default;">
+          <a href="${p.url}" target="_blank" style="text-decoration: none; color: inherit; display: block;">
+            <span class="project-title">${escapeHtml(p.title)}</span>
+            <p class="project-desc">${escapeHtml(p.description || '')}</p>
+          </a>
+          ${p.repo_url ? `<div style="margin-top: 10px; font-size: 0.9em;"><a href="${p.repo_url}" target="_blank" style="color: var(--primary-color); font-weight: 500;">[Código Fonte]</a></div>` : ''}
+        </div>
       `).join('');
     };
 
     // render public list
-    (async function () { const projects = await fetchProjects(); renderPublic(projects); })();
+    (async function () {
+      const projects = await fetchProjects();
+      renderPublic(projects);
+
+      // Track visit (only once per session)
+      if (!sessionStorage.getItem('visit_tracked')) {
+        try {
+          await fetch('/visit', { method: 'POST' });
+          sessionStorage.setItem('visit_tracked', 'true');
+          console.log('Visit tracked');
+        } catch (e) {
+          console.error('Tracking error', e);
+        }
+      } else {
+        console.log('Visit already tracked in this session');
+      }
+    })();
   </script>
 </body>
 
