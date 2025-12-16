@@ -67,6 +67,25 @@ def read_projects():
         return projects
 
 
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    # Basic recommended security headers
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("Permissions-Policy", "geolocation=()")
+    response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return response
+
+
+@app.head("/{path:path}", include_in_schema=False)
+def head_handler(path: str):
+    # respond OK to HEAD for monitoring/scanners
+    return Response(status_code=200)
+
+
 def check_admin_token(x_admin_token: str = Header(None)):
     if x_admin_token != ADMIN_TOKEN:
         raise HTTPException(status_code=401, detail="Unauthorized")
