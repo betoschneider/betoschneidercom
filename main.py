@@ -60,6 +60,16 @@ def admin_page():
     return FileResponse("static/admin.html")
 
 
+@app.get("/robots.txt", include_in_schema=False)
+def robots_txt():
+    return FileResponse("static/robots.txt")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap_xml():
+    return FileResponse("static/sitemap.xml")
+
+
 @app.get("/projects")
 def read_projects():
     with Session(engine) as session:
