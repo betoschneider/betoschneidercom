@@ -57,7 +57,7 @@ def root():
 
 @app.get("/admin", include_in_schema=False)
 def admin_page():
-    return FileResponse("static/admin.html")
+    return FileResponse("static/admin.html", headers={"X-Robots-Tag": "noindex, nofollow"})
 
 
 @app.get("/robots.txt", include_in_schema=False)
