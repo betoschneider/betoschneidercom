@@ -60,6 +60,16 @@ def admin_page():
     return FileResponse("static/admin.html", headers={"X-Robots-Tag": "noindex, nofollow"})
 
 
+@app.get("/sobre")
+def about_page():
+    return FileResponse("static/sobre.html")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse("static/favicon.ico")
+
+
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
     return FileResponse("static/robots.txt")
