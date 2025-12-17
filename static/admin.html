@@ -6,6 +6,8 @@
   <title>Admin - Meus Projetos</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -58,8 +60,12 @@
 
     <!-- Tab Profile -->
     <div id="profile-tab" class="tab-content">
-      <h2>Editar Perfil (Hero Section)</h2>
-      <div class="project-card" style="border-color: var(--border-color);">
+      <h2>Editar Perfil</h2>
+      <div style="margin-bottom: 20px;">
+        <button id="loadProfileBtn" class="secondary">Carregar Dados do Perfil</button>
+      </div>
+
+      <div id="profileContainer" class="project-card" style="border-color: var(--border-color); display: none;">
         <div class="form-group">
           <label>Nome Completo</label>
           <input id="p_name" type="text" />
@@ -142,8 +148,17 @@
 
     // Profile Logic
     async function loadProfileForAdmin() {
+      const token = document.getElementById('token').value.trim();
+      if (!token) {
+        alert('Por favor, insira o token admin para carregar o perfil.');
+        return;
+      }
+
+      const container = document.getElementById('profileContainer');
+
       try {
         const res = await fetch('/profile');
+        if (!res.ok) throw new Error('Erro ao carregar perfil');
         const p = await res.json();
 
         document.getElementById('p_name').value = p.name || '';
@@ -154,8 +169,12 @@
         document.getElementById('p_photo_url').value = p.photo_url || '';
         document.getElementById('p_linkedin').value = p.social_linkedin || '';
         document.getElementById('p_github').value = p.social_github || '';
+
+        // Show container on success
+        container.style.display = 'block';
       } catch (e) {
         console.error("Erro ao carregar perfil", e);
+        alert("Erro ao carregar perfil.");
       }
     }
 
@@ -245,9 +264,13 @@
     // admin init
     (async function () {
       await initAdmin();
-      loadProfileForAdmin();
 
       document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+
+      const loadProfileBtn = document.getElementById('loadProfileBtn');
+      if (loadProfileBtn) {
+        loadProfileBtn.addEventListener('click', loadProfileForAdmin);
+      }
 
       // Setup stats button
       const loadStatsBtn = document.getElementById('loadStatsBtn');
