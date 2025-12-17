@@ -11,66 +11,115 @@
 
 <body>
   <div class="container">
-    <h1>Gerenciar Projetos</h1>
+    <h1>Painel Admin</h1>
 
     <div class="project-card" style="border-color: var(--primary-color);">
       <div class="form-group">
         <label for="token">Token Admin</label>
-        <input id="token" type="password" placeholder="Insira o token admin" />
+        <input id="token" type="password" placeholder="Insira o Token Admin para autenticar" />
       </div>
     </div>
 
-    <h2>Criar / Editar Projeto</h2>
-    <div class="project-card" style="border-color: var(--primary-color);">
-      <div class="form-group">
-        <input id="title" type="text" placeholder="Título do Projeto" />
+    <div class="tabs">
+      <button class="tab-btn active" onclick="openTab('projects-tab')">Gerenciar Projetos</button>
+      <button class="tab-btn" onclick="openTab('profile-tab')">Editar Perfil</button>
+      <button class="tab-btn" onclick="openTab('stats-tab')">Estatísticas</button>
+    </div>
+
+    <!-- Tab Projects -->
+    <div id="projects-tab" class="tab-content active">
+      <h2>Criar / Editar Projeto</h2>
+      <div class="project-card" style="border-color: var(--border-color);">
+        <div class="form-group">
+          <input id="title" type="text" placeholder="Título do Projeto" />
+        </div>
+        <div class="form-group">
+          <textarea id="description" placeholder="Descrição do Projeto"></textarea>
+        </div>
+        <div class="form-group">
+          <input id="url" type="text" placeholder="URL (https://...)" />
+        </div>
+        <div class="form-group">
+          <input id="repo_url" type="text" placeholder="URL do Repositório (Opcional)" />
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button id="createBtn">Criar Projeto</button>
+          <button id="updateBtn" disabled class="secondary">Atualizar</button>
+          <button id="clearBtn" class="secondary"
+            style="background: transparent; color: #6c757d; border: 1px solid #dee2e6;">Limpar</button>
+        </div>
       </div>
-      <div class="form-group">
-        <textarea id="description" placeholder="Descrição do Projeto"></textarea>
-      </div>
-      <div class="form-group">
-        <input id="url" type="text" placeholder="URL (https://...)" />
-      </div>
-      <div class="form-group">
-        <input id="repo_url" type="text" placeholder="URL do Repositório (Opcional)" />
-      </div>
-      <div style="display: flex; gap: 10px;">
-        <button id="createBtn">Criar Projeto</button>
-        <button id="updateBtn" disabled class="secondary">Atualizar</button>
-        <button id="clearBtn" class="secondary"
-          style="background: transparent; color: #6c757d; border: 1px solid #dee2e6;">Limpar</button>
+
+      <h2>Lista de Projetos</h2>
+      <div id="projectsList">
+        <p style="text-align: center; color: #6c757d;">Carregando...</p>
       </div>
     </div>
 
-    <a href="/" class="nav-link" style="margin-top: 0; margin-bottom: 20px;">← Voltar para página pública</a>
-
-    <h2>Estatísticas de Acesso (Últimos 90 dias)</h2>
-    <div style="margin-bottom: 10px;">
-      <button id="loadStatsBtn" class="secondary" style="padding: 5px 10px; font-size: 0.9em;">Carregar / Atualizar
-        Estatísticas</button>
+    <!-- Tab Profile -->
+    <div id="profile-tab" class="tab-content">
+      <h2>Editar Perfil (Hero Section)</h2>
+      <div class="project-card" style="border-color: var(--border-color);">
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input id="p_name" type="text" />
+        </div>
+        <div class="form-group">
+          <label>Cargo / Headline</label>
+          <input id="p_role" type="text" />
+        </div>
+        <div class="form-group">
+          <label>Localização</label>
+          <input id="p_location" type="text" />
+        </div>
+        <div class="form-group">
+          <label>Bio / Descrição</label>
+          <textarea id="p_description" style="min-height: 150px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Stacks (separadas por vírgula)</label>
+          <input id="p_stacks" type="text" placeholder="Python, JavaScript, SQL..." />
+        </div>
+        <div class="form-group">
+          <label>URL da Foto de Perfil</label>
+          <input id="p_photo_url" type="text" placeholder="https://..." />
+        </div>
+        <div class="form-group">
+          <label>LinkedIn URL</label>
+          <input id="p_linkedin" type="text" />
+        </div>
+        <div class="form-group">
+          <label>GitHub URL</label>
+          <input id="p_github" type="text" />
+        </div>
+        <button id="saveProfileBtn">Salvar Perfil</button>
+      </div>
     </div>
 
-    <div id="statsContainer" class="project-card" style="border-color: var(--primary-color); display: none;">
-      <table style="width: 100%; border-collapse: collapse; text-align: left;">
-        <thead>
-          <tr style="border-bottom: 1px solid #dee2e6;">
-            <th style="padding: 8px;">Data</th>
-            <th style="padding: 8px;">Total</th>
-            <th style="padding: 8px;">PC</th>
-            <th style="padding: 8px;">Smartphone</th>
-          </tr>
-        </thead>
-        <tbody id="statsTableBody">
-          <tr>
-            <td colspan="4" style="text-align: center; padding: 10px;">Carregando estatísticas...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- Tab Stats -->
+    <div id="stats-tab" class="tab-content">
+      <h2>Estatísticas de Acesso (Últimos 90 dias)</h2>
+      <div style="margin-bottom: 20px;">
+        <button id="loadStatsBtn" class="secondary">Carregar Estatísticas</button>
+      </div>
 
-    <h2>Lista de Projetos</h2>
-    <div id="projectsList">
-      <p style="text-align: center; color: #6c757d;">Carregando...</p>
+      <div id="statsContainer" class="project-card" style="border-color: var(--border-color); display: none;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid #dee2e6;">
+              <th style="padding: 8px;">Data</th>
+              <th style="padding: 8px;">Total</th>
+              <th style="padding: 8px;">PC</th>
+              <th style="padding: 8px;">Smartphone</th>
+            </tr>
+          </thead>
+          <tbody id="statsTableBody">
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 10px;">Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <a href="/" class="nav-link">← Voltar para página pública</a>
@@ -82,6 +131,74 @@
 
   <script src="/static/js/app.js"></script>
   <script>
+    // Tab Logic
+    function openTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active'); // Assumes button is clicked
+    }
+
+    // Profile Logic
+    async function loadProfileForAdmin() {
+      try {
+        const res = await fetch('/profile');
+        const p = await res.json();
+
+        document.getElementById('p_name').value = p.name || '';
+        document.getElementById('p_role').value = p.role || '';
+        document.getElementById('p_location').value = p.location || '';
+        document.getElementById('p_description').value = p.description || '';
+        document.getElementById('p_stacks').value = p.stacks || '';
+        document.getElementById('p_photo_url').value = p.photo_url || '';
+        document.getElementById('p_linkedin').value = p.social_linkedin || '';
+        document.getElementById('p_github').value = p.social_github || '';
+      } catch (e) {
+        console.error("Erro ao carregar perfil", e);
+      }
+    }
+
+    async function saveProfile() {
+      const token = document.getElementById('token').value.trim();
+      if (!token) {
+        alert('Insira o Token Admin');
+        return;
+      }
+
+      const data = {
+        name: document.getElementById('p_name').value,
+        role: document.getElementById('p_role').value,
+        location: document.getElementById('p_location').value,
+        description: document.getElementById('p_description').value,
+        stacks: document.getElementById('p_stacks').value,
+        photo_url: document.getElementById('p_photo_url').value,
+        social_linkedin: document.getElementById('p_linkedin').value,
+        social_github: document.getElementById('p_github').value
+      };
+
+      try {
+        const res = await fetch('/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Token': token
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          alert('Perfil atualizado com sucesso!');
+        } else {
+          alert('Erro ao atualizar perfil. Verifique o token.');
+        }
+      } catch (e) {
+        alert('Erro ao conectar com API.');
+        console.error(e);
+      }
+    }
+
+
     // Override loadProjectsForAdmin to use new classes
     const originalLoadProjectsForAdmin = loadProjectsForAdmin;
     loadProjectsForAdmin = async function () {
@@ -128,6 +245,9 @@
     // admin init
     (async function () {
       await initAdmin();
+      loadProfileForAdmin();
+
+      document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
 
       // Setup stats button
       const loadStatsBtn = document.getElementById('loadStatsBtn');
@@ -177,14 +297,9 @@
 
       } catch (err) {
         alert(err.message);
-        // Ensure it stays hidden or hide it if it was visible? 
-        // Let's keep previous state or hide? User wants it hidden until verified.
-        // If error, likely token is wrong, so maybe hide it.
         container.style.display = 'none';
       }
     }
-
-    // Changing approach: adding logic to `initAdmin` to handle stats loading button.
   </script>
 </body>
 

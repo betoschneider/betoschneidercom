@@ -11,19 +11,97 @@
 
 <body>
   <div class="container">
-    <h1>Meus Projetos</h1>
+
+    <!-- Hero Section -->
+    <div id="hero-section" class="hero-section" style="display: none;">
+      <img id="hero-avatar" class="hero-avatar" src="" alt="Foto de Perfil"
+        onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
+      <h1 id="hero-name" class="hero-name"></h1>
+      <div id="hero-role" class="hero-role"></div>
+
+      <div class="hero-location">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+        </svg>
+        <span id="hero-location"></span>
+      </div>
+
+      <div id="hero-bio" class="hero-bio"></div>
+
+      <div id="hero-stacks" class="hero-stacks"></div>
+
+      <div class="hero-social" id="hero-social">
+        <!-- Links will be injected here -->
+      </div>
+    </div>
+
+    <h2>Meus Projetos</h2>
     <div id="projects">
       <p style="text-align: center; color: #6c757d;">Carregando projetos...</p>
     </div>
-    <a href="/admin" class="nav-link">Gerenciar Projetos (Admin)</a>
+
     <footer>
       Desenvolvido por <a href="https://www.linkedin.com/in/robertoschneider/" target="_blank">Roberto Schneider</a>.
-      2025. | <a href="https://github.com/betoschneider" target="_blank">GitHub</a>
+      2025. | <a href="https://github.com/betoschneider" target="_blank">GitHub</a> | <a href="/admin">Admin</a>
     </footer>
   </div>
 
   <script src="/static/js/app.js"></script>
   <script>
+    // Fetch and Render Profile
+    async function fetchProfile() {
+      try {
+        const response = await fetch('/profile');
+        if (!response.ok) throw new Error('Failed to fetch profile');
+        const profile = await response.json();
+        renderProfile(profile);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    }
+
+    function renderProfile(profile) {
+      document.getElementById('hero-section').style.display = 'flex';
+      document.getElementById('hero-name').textContent = profile.name;
+      document.getElementById('hero-role').textContent = profile.role;
+      if (profile.photo_url) {
+        document.getElementById('hero-avatar').src = profile.photo_url;
+      }
+      document.getElementById('hero-location').textContent = profile.location;
+      document.getElementById('hero-bio').textContent = profile.description;
+
+      // Stacks
+      const stacksContainer = document.getElementById('hero-stacks');
+      stacksContainer.innerHTML = '';
+      if (profile.stacks) {
+        profile.stacks.split(',').forEach(stack => {
+          const tag = document.createElement('span');
+          tag.className = 'stack-tag';
+          tag.textContent = stack.trim();
+          stacksContainer.appendChild(tag);
+        });
+      }
+
+      // Social
+      const socialContainer = document.getElementById('hero-social');
+      socialContainer.innerHTML = '';
+
+      if (profile.social_linkedin) {
+        socialContainer.innerHTML += `
+          <a href="${profile.social_linkedin}" target="_blank" class="social-link">
+            LinkedIn
+          </a>
+        `;
+      }
+      if (profile.social_github) {
+        socialContainer.innerHTML += `
+          <a href="${profile.social_github}" target="_blank" class="social-link">
+            GitHub
+          </a>
+        `;
+      }
+    }
+
     // Override renderPublic to use new classes
     const originalRenderPublic = renderPublic;
     renderPublic = function (projects) {
@@ -45,6 +123,7 @@
 
     // render public list
     (async function () {
+      fetchProfile();
       const projects = await fetchProjects();
       renderPublic(projects);
 

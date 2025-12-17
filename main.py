@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select, func
 from database import engine, create_db_and_tables
-from models import Project, Visitor
+from models import Project, Visitor, Profile
 
 # Carrega .env de múltiplos locais (em ordem de prioridade)
 # 1. /var/www/.env (produção em servidor)
@@ -145,6 +145,43 @@ def delete_project(project_id: int):
         session.delete(db)
         session.commit()
         return {"ok": True}
+
+
+@app.get("/profile")
+def get_profile():
+    with Session(engine) as session:
+        profile = session.get(Profile, 1)
+        if not profile:
+            # Create default profile if not exists
+            profile = Profile(id=1)
+            session.add(profile)
+            session.commit()
+            session.refresh(profile)
+        return profile
+
+
+@app.put("/profile", dependencies=[Depends(check_admin_token)])
+def update_profile(new_data: Profile):
+    with Session(engine) as session:
+        profile = session.get(Profile, 1)
+        if not profile:
+            profile = Profile(id=1)
+            session.add(profile)
+        
+        # Update fields
+        profile.name = new_data.name
+        profile.role = new_data.role
+        profile.description = new_data.description
+        profile.location = new_data.location
+        profile.stacks = new_data.stacks
+        profile.photo_url = new_data.photo_url
+        profile.social_linkedin = new_data.social_linkedin
+        profile.social_github = new_data.social_github
+        
+        session.add(profile)
+        session.commit()
+        session.refresh(profile)
+        return profile
 
 
 @app.post("/visit")
