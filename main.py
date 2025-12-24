@@ -58,17 +58,12 @@ def root():
 
 @app.get("/admin", include_in_schema=False)
 def admin_page():
-    return FileResponse("static/admin.html", headers={"X-Robots-Tag": "noindex, nofollow"})
+    return FileResponse("static/index.html", headers={"X-Robots-Tag": "noindex, nofollow"})
 
 
 @app.get("/sobre")
 def about_page():
-    return FileResponse("static/sobre.html")
-
-
-@app.get("/favicon.ico", include_in_schema=False)
-def favicon():
-    return FileResponse("static/favicon.ico")
+    return FileResponse("static/index.html")
 
 
 @app.get("/robots.txt", include_in_schema=False)

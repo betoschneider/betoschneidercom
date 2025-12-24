@@ -1,148 +1,489 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-  <meta charset="utf-8" />
-  <title>Meus Projetos</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="/static/style.css">
-  <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-
-<body>
-  <div class="container">
-
-    <!-- Hero Section -->
-    <div id="hero-section" class="hero-section" style="display: none;">
-      <img id="hero-avatar" class="hero-avatar" src="" alt="Foto de Perfil"
-        onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">
-      <h1 id="hero-name" class="hero-name"></h1>
-      <div id="hero-role" class="hero-role"></div>
-
-      <div class="hero-location">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-          <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
-        </svg>
-        <span id="hero-location"></span>
-      </div>
-
-      <div id="hero-bio" class="hero-bio"></div>
-
-      <div id="hero-stacks" class="hero-stacks"></div>
-
-      <div class="hero-social" id="hero-social">
-        <!-- Links will be injected here -->
-      </div>
-    </div>
-
-    <h2>Meus Projetos</h2>
-    <div id="projects">
-      <p style="text-align: center; color: #6c757d;">Carregando projetos...</p>
-    </div>
-
-    <footer>
-      Desenvolvido por <a href="https://www.linkedin.com/in/robertoschneider/" target="_blank">Roberto Schneider</a>.
-      2025. | <a href="https://github.com/betoschneider" target="_blank">GitHub</a> | <a href="/admin">Admin</a>
-    </footer>
-  </div>
-
-  <script src="/static/js/app.js"></script>
-  <script>
-    // Fetch and Render Profile
-    async function fetchProfile() {
-      try {
-        const response = await fetch('/profile');
-        if (!response.ok) throw new Error('Failed to fetch profile');
-        const profile = await response.json();
-        renderProfile(profile);
-      } catch (error) {
-        console.error('Error loading profile:', error);
-      }
-    }
-
-    function renderProfile(profile) {
-      document.getElementById('hero-section').style.display = 'flex';
-      document.getElementById('hero-name').textContent = profile.name;
-      document.getElementById('hero-role').textContent = profile.role;
-      if (profile.photo_url) {
-        document.getElementById('hero-avatar').src = profile.photo_url;
-      }
-      document.getElementById('hero-location').textContent = profile.location;
-      document.getElementById('hero-bio').textContent = profile.description;
-
-      // Stacks
-      const stacksContainer = document.getElementById('hero-stacks');
-      stacksContainer.innerHTML = '';
-      if (profile.stacks) {
-        profile.stacks.split(',').forEach(stack => {
-          const tag = document.createElement('span');
-          tag.className = 'stack-tag';
-          tag.textContent = stack.trim();
-          stacksContainer.appendChild(tag);
-        });
-      }
-
-      // Social
-      const socialContainer = document.getElementById('hero-social');
-      socialContainer.innerHTML = '';
-
-      if (profile.social_linkedin) {
-        socialContainer.innerHTML += `
-          <a href="${profile.social_linkedin}" target="_blank" class="social-link">
-            LinkedIn
-          </a>
-        `;
-      }
-      if (profile.social_github) {
-        socialContainer.innerHTML += `
-          <a href="${profile.social_github}" target="_blank" class="social-link">
-            GitHub
-          </a>
-        `;
-      }
-    }
-
-    // Override renderPublic to use new classes
-    const originalRenderPublic = renderPublic;
-    renderPublic = function (projects) {
-      const root = document.getElementById('projects');
-      if (!projects || projects.length === 0) {
-        root.innerHTML = '<p style="text-align: center;">Nenhum projeto encontrado.</p>';
-        return;
-      }
-      root.innerHTML = projects.map(p => `
-        <div class="project-card" style="cursor: default;">
-          <a href="${p.url}" target="_blank" style="text-decoration: none; color: inherit; display: block;">
-            <span class="project-title">${escapeHtml(p.title)}</span>
-            <p class="project-desc">${escapeHtml(p.description || '')}</p>
-          </a>
-          ${p.repo_url ? `<div style="margin-top: 10px; font-size: 0.9em;"><a href="${p.repo_url}" target="_blank" style="color: var(--primary-color); font-weight: 500;">[Código Fonte]</a></div>` : ''}
-        </div>
-      `).join('');
-    };
-
-    // render public list
-    (async function () {
-      fetchProfile();
-      const projects = await fetchProjects();
-      renderPublic(projects);
-
-      // Track visit (only once per session)
-      if (!sessionStorage.getItem('visit_tracked')) {
-        try {
-          await fetch('/visit', { method: 'POST' });
-          sessionStorage.setItem('visit_tracked', 'true');
-          console.log('Visit tracked');
-        } catch (e) {
-          console.error('Tracking error', e);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfólio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
         }
-      } else {
-        console.log('Visit already tracked in this session');
-      }
-    })();
-  </script>
-</body>
+    </script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-router-dom@5.3.4/umd/react-router-dom.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-start: #f1f5f9;
+            --bg-end: #cbd5e1;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+        html.dark {
+            --bg-start: #0f172a;
+            --bg-end: #1e293b;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+        body {
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            transition: background 0.5s ease;
+        }
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            transition: background 0.3s ease, border 0.3s ease;
+        }
+        .nav-link.active {
+            color: #60a5fa;
+            border-bottom: 2px solid #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="text-slate-500 dark:text-white text-center mt-20 animate-pulse">Carregando aplicação...</div>
+    </div>
 
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { BrowserRouter, Switch, Route, Link, useLocation, useHistory } = ReactRouterDOM;
+
+        // --- Componente de Navegação ---
+        function Navigation({ theme, toggleTheme }) {
+            const location = useLocation();
+            const isActive = (path) => location.pathname === path ? 'active' : '';
+
+            return (
+                <nav className="flex justify-between items-center mb-8 max-w-4xl mx-auto">
+                    <div className="flex space-x-8 text-slate-500 dark:text-slate-400 font-medium mx-auto">
+                        <Link to="/" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/')}`}>Home</Link>
+                        <Link to="/sobre" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/sobre')}`}>Sobre</Link>
+                        {/* Link discreto para admin */}
+                        <Link to="/admin" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/admin')}`}><i className="fas fa-lock text-xs"></i></Link>
+                    </div>
+                    <button onClick={toggleTheme} className="absolute right-4 top-8 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-600 dark:text-yellow-300 transition-colors">
+                        {theme === 'dark' ? <i className="fas fa-sun"></i> : <i className="fas fa-moon text-slate-600"></i>}
+                    </button>
+                </nav>
+            );
+        }
+
+        // --- Página: Home ---
+        function Home() {
+            const [profile, setProfile] = useState(null);
+            const [projects, setProjects] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                // Registrar visita
+                fetch('/visit', { method: 'POST' });
+
+                // Carregar dados
+                Promise.all([
+                    fetch('/profile').then(res => res.json()),
+                    fetch('/projects').then(res => res.json())
+                ]).then(([profileData, projectsData]) => {
+                    setProfile(profileData);
+                    setProjects(projectsData);
+                    setLoading(false);
+                }).catch(err => {
+                    console.error("Erro ao carregar dados:", err);
+                    setLoading(false);
+                });
+            }, []);
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="animate-fade-in">
+                    {/* Profile Header */}
+                    {profile && (
+                        <div className="flex flex-col items-center text-center mb-16 space-y-6">
+                            <div className="relative">
+                                <img 
+                                    src={profile.photo_url || "https://ui-avatars.com/api/?name=" + profile.name} 
+                                    alt={profile.name}
+                                    className="w-32 h-32 rounded-full border-4 border-slate-700 shadow-2xl object-cover"
+                                />
+                                <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-slate-800"></div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <h1 className="text-4xl font-bold text-slate-800 dark:text-white tracking-tight">{profile.name}</h1>
+                                <p className="text-xl text-blue-400 font-medium">{profile.role}</p>
+                                <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+                                    <i className="fas fa-map-marker-alt"></i>
+                                    <span>{profile.location}</span>
+                                </div>
+                            </div>
+
+                            <p className="text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                                {profile.description}
+                            </p>
+
+                            {/* Stacks */}
+                            <div className="flex flex-wrap justify-center gap-2">
+                                {profile.stacks && profile.stacks.split(',').map((stack, i) => (
+                                    <span key={i} className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                                        {stack.trim()}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Social Icons */}
+                            <div className="flex gap-6 text-2xl pt-2">
+                                {profile.social_github && (
+                                    <a href={profile.social_github} target="_blank" className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-transform hover:scale-110">
+                                        <i className="fab fa-github"></i>
+                                    </a>
+                                )}
+                                {profile.social_linkedin && (
+                                    <a href={profile.social_linkedin} target="_blank" className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-500 transition-transform hover:scale-110">
+                                        <i className="fab fa-linkedin"></i>
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Projects Grid */}
+                    <div className="grid gap-6 md:grid-cols-1">
+                        {projects.map(project => (
+                            <div key={project.id} className="glass-card rounded-xl p-6 hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 group">
+                                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-bold text-slate-800 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
+                                            {project.title}
+                                        </h3>
+                                        <p className="mt-2 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                            {project.description}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0 mt-4 sm:mt-0">
+                                        {project.repo_url && (
+                                            <a href={project.repo_url} target="_blank" className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" title="Ver Código">
+                                                <i className="fab fa-github text-xl"></i>
+                                            </a>
+                                        )}
+                                        <a href={project.url} target="_blank" className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-sm transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2">
+                                            <span>Acessar</span>
+                                            <i className="fas fa-external-link-alt text-xs"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- Página: Sobre ---
+        function About() {
+            return (
+                <div className="glass-card rounded-xl p-8 max-w-2xl mx-auto animate-fade-in">
+                    <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-6 border-b border-slate-200 dark:border-slate-700 pb-4">Sobre Mim</h2>
+                    <div className="space-y-4 text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <p>
+                            Olá! Esta é a página sobre. Aqui você pode detalhar sua jornada profissional, 
+                            seus objetivos e o que te motiva na tecnologia.
+                        </p>
+                        <p>
+                            Este layout utiliza o mesmo design system da página principal, garantindo uma 
+                            experiência visual consistente. O efeito "glassmorphism" (vidro fosco) é aplicado 
+                            através de classes utilitárias do Tailwind CSS combinadas com CSS personalizado.
+                        </p>
+                        <div className="mt-8 p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <h3 className="text-slate-800 dark:text-white font-semibold mb-2"><i className="fas fa-code mr-2 text-blue-500 dark:text-blue-400"></i>Tech Stack deste Site</h3>
+                            <ul className="list-disc list-inside text-sm space-y-1">
+                                <li>Backend: FastAPI (Python)</li>
+                                <li>Frontend: React 18 + React Router</li>
+                                <li>Estilo: Tailwind CSS</li>
+                                <li>Database: SQLite</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- Página: Admin ---
+        function Admin() {
+            const [token, setToken] = useState(localStorage.getItem('admin_token') || '');
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [activeTab, setActiveTab] = useState('projects'); // projects, profile, stats
+            const [projects, setProjects] = useState([]);
+            const [stats, setStats] = useState([]);
+            const [profileForm, setProfileForm] = useState({});
+            const [newProject, setNewProject] = useState({ title: '', description: '', url: '', repo_url: '' });
+            const [msg, setMsg] = useState('');
+
+            useEffect(() => {
+                if (token) verifyToken();
+            }, []);
+
+            const verifyToken = async () => {
+                // Tenta buscar stats para verificar token
+                try {
+                    const res = await fetch('/admin/stats', { headers: { 'x-admin-token': token } });
+                    if (res.ok) {
+                        setIsAuthenticated(true);
+                        localStorage.setItem('admin_token', token);
+                        loadData();
+                    } else {
+                        setMsg('Token inválido');
+                        setIsAuthenticated(false);
+                    }
+                } catch (e) {
+                    setMsg('Erro de conexão');
+                }
+            };
+
+            const loadData = async () => {
+                const headers = { 'x-admin-token': token };
+                
+                // Carregar Projetos
+                fetch('/projects').then(r => r.json()).then(setProjects);
+                
+                // Carregar Profile para Edição
+                fetch('/profile').then(r => r.json()).then(setProfileForm);
+
+                // Carregar Stats
+                fetch('/admin/stats', { headers }).then(r => r.json()).then(setStats);
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                verifyToken();
+            };
+
+            const handleDeleteProject = async (id) => {
+                if(!confirm('Tem certeza?')) return;
+                await fetch(`/projects/${id}`, { 
+                    method: 'DELETE', 
+                    headers: { 'x-admin-token': token } 
+                });
+                loadData();
+            };
+
+            const handleAddProject = async (e) => {
+                e.preventDefault();
+                await fetch('/projects', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+                    body: JSON.stringify(newProject)
+                });
+                setNewProject({ title: '', description: '', url: '', repo_url: '' });
+                loadData();
+            };
+
+            const handleUpdateProfile = async (e) => {
+                e.preventDefault();
+                await fetch('/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+                    body: JSON.stringify(profileForm)
+                });
+                alert('Perfil atualizado!');
+                loadData();
+            };
+
+            if (!isAuthenticated) {
+                return (
+                    <div className="max-w-md mx-auto glass-card p-8 rounded-xl text-center">
+                        <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">Acesso Admin</h2>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <input 
+                                type="password" 
+                                value={token}
+                                onChange={e => setToken(e.target.value)}
+                                placeholder="Token de Acesso"
+                                className="w-full p-3 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-blue-500 outline-none"
+                            />
+                            <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition-colors">
+                                Entrar
+                            </button>
+                            {msg && <p className="text-red-400">{msg}</p>}
+                        </form>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex justify-between items-center mb-8">
+                        <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Painel Admin</h2>
+                        <button onClick={() => {localStorage.removeItem('admin_token'); setIsAuthenticated(false);}} className="text-red-400 hover:text-red-300 text-sm">Sair</button>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex space-x-4 mb-6 border-b border-slate-200 dark:border-slate-700 pb-2">
+                        {['projects', 'profile', 'stats'].map(tab => (
+                            <button 
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-4 py-2 rounded capitalize ${activeTab === tab ? 'bg-blue-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                            >
+                                {tab === 'projects' ? 'Projetos' : tab === 'profile' ? 'Perfil' : 'Estatísticas'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Tab Content */}
+                    <div className="glass-card p-6 rounded-xl">
+                        
+                        {/* PROJECTS TAB */}
+                        {activeTab === 'projects' && (
+                            <div className="space-y-8">
+                                <form onSubmit={handleAddProject} className="grid gap-4 p-4 bg-slate-100 dark:bg-slate-800/50 rounded border border-slate-200 dark:border-slate-700">
+                                    <h3 className="text-slate-800 dark:text-white font-bold">Novo Projeto</h3>
+                                    <input required placeholder="Título" value={newProject.title} onChange={e => setNewProject({...newProject, title: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <input required placeholder="Descrição" value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <input required placeholder="URL (https://...)" value={newProject.url} onChange={e => setNewProject({...newProject, url: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input placeholder="Repo URL (Opcional)" value={newProject.repo_url} onChange={e => setNewProject({...newProject, repo_url: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    </div>
+                                    <button type="submit" className="bg-green-600 hover:bg-green-500 text-white py-2 rounded font-medium">Adicionar</button>
+                                </form>
+
+                                <div className="space-y-2">
+                                    {projects.map(p => (
+                                        <div key={p.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/30 rounded border border-slate-200 dark:border-slate-700">
+                                            <div>
+                                                <div className="font-bold text-slate-800 dark:text-white">{p.title}</div>
+                                                <div className="text-xs text-slate-500 dark:text-slate-400">{p.url}</div>
+                                            </div>
+                                            <button onClick={() => handleDeleteProject(p.id)} className="text-red-400 hover:text-red-300 p-2"><i className="fas fa-trash"></i></button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* PROFILE TAB */}
+                        {activeTab === 'profile' && (
+                            <form onSubmit={handleUpdateProfile} className="grid gap-4">
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <label className="block">
+                                        <span className="text-slate-500 dark:text-slate-400 text-sm">Nome</span>
+                                        <input value={profileForm.name || ''} onChange={e => setProfileForm({...profileForm, name: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    </label>
+                                    <label className="block">
+                                        <span className="text-slate-500 dark:text-slate-400 text-sm">Cargo</span>
+                                        <input value={profileForm.role || ''} onChange={e => setProfileForm({...profileForm, role: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    </label>
+                                </div>
+                                <label className="block">
+                                    <span className="text-slate-500 dark:text-slate-400 text-sm">Descrição</span>
+                                    <textarea rows="3" value={profileForm.description || ''} onChange={e => setProfileForm({...profileForm, description: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                </label>
+                                <label className="block">
+                                    <span className="text-slate-500 dark:text-slate-400 text-sm">Stacks (separadas por vírgula)</span>
+                                    <input value={profileForm.stacks || ''} onChange={e => setProfileForm({...profileForm, stacks: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                </label>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <label className="block">
+                                        <span className="text-slate-500 dark:text-slate-400 text-sm">Foto URL</span>
+                                        <input value={profileForm.photo_url || ''} onChange={e => setProfileForm({...profileForm, photo_url: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    </label>
+                                    <label className="block">
+                                        <span className="text-slate-500 dark:text-slate-400 text-sm">Localização</span>
+                                        <input value={profileForm.location || ''} onChange={e => setProfileForm({...profileForm, location: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    </label>
+                                </div>
+                                <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-medium mt-4">Salvar Alterações</button>
+                            </form>
+                        )}
+
+                        {/* STATS TAB */}
+                        {activeTab === 'stats' && (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
+                                    <thead className="text-xs uppercase bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                        <tr>
+                                            <th className="px-4 py-3">Data</th>
+                                            <th className="px-4 py-3">Total</th>
+                                            <th className="px-4 py-3">PC</th>
+                                            <th className="px-4 py-3">Mobile</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {stats.map((stat, i) => (
+                                            <tr key={i} className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800/50">
+                                                <td className="px-4 py-3 font-medium text-slate-800 dark:text-white">{stat.date}</td>
+                                                <td className="px-4 py-3">{stat.total}</td>
+                                                <td className="px-4 py-3 text-blue-600 dark:text-blue-400">{stat.pc}</td>
+                                                <td className="px-4 py-3 text-green-600 dark:text-green-400">{stat.smartphone}</td>
+                                            </tr>
+                                        ))}
+                                        {stats.length === 0 && <tr><td colSpan="4" className="text-center py-4">Sem dados recentes.</td></tr>}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- App Principal ---
+        function App() {
+            const [profile, setProfile] = useState(null);
+            const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+            useEffect(() => {
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                localStorage.setItem('theme', theme);
+            }, [theme]);
+
+            const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
+            // Carregar perfil globalmente para o footer
+            useEffect(() => {
+                fetch('/profile').then(res => res.json()).then(setProfile).catch(() => {});
+            }, []);
+
+            return (
+                <BrowserRouter>
+                    <div className="container mx-auto px-4 py-8 min-h-screen flex flex-col">
+                        <Navigation theme={theme} toggleTheme={toggleTheme} />
+                        
+                        <div className="flex-grow">
+                            <Switch>
+                                <Route exact path="/" component={Home} />
+                                <Route path="/sobre" component={About} />
+                                <Route path="/admin" component={Admin} />
+                            </Switch>
+                        </div>
+
+                        <footer className="mt-20 text-center text-slate-600 text-sm">
+                            <p>&copy; {new Date().getFullYear()} {profile?.name || 'Dev'}. Feito com FastAPI & React.</p>
+                        </footer>
+                    </div>
+                </BrowserRouter>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
 </html>
