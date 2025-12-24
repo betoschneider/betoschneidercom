@@ -1,4 +1,5 @@
 import os
+import secrets
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
@@ -107,12 +108,14 @@ def head_handler(path: str):
 
 
 def check_admin_token(x_admin_token: str = Header(None)):
-    if x_admin_token != ADMIN_TOKEN:
+    if x_admin_token is None or not secrets.compare_digest(x_admin_token, ADMIN_TOKEN):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 @app.post("/projects", dependencies=[Depends(check_admin_token)])
 def create_project(project: Project):
+    if not project.url.startswith(("http://", "https://")):
+        raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
     with Session(engine) as session:
         session.add(project)
         session.commit()
@@ -122,6 +125,8 @@ def create_project(project: Project):
 
 @app.put("/projects/{project_id}", dependencies=[Depends(check_admin_token)])
 def update_project(project_id: int, project: Project):
+    if not project.url.startswith(("http://", "https://")):
+        raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
     with Session(engine) as session:
         db = session.get(Project, project_id)
         if not db:
