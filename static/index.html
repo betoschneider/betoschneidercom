@@ -60,12 +60,37 @@
         function Navigation({ theme, toggleTheme }) {
             const location = useLocation();
             const isActive = (path) => location.pathname === path ? 'active' : '';
+            const [tools, setTools] = useState([]);
+            const [showTools, setShowTools] = useState(false);
+
+            useEffect(() => {
+                fetch('/tools').then(res => res.json()).then(setTools).catch(() => {});
+            }, []);
 
             return (
-                <nav className="flex justify-between items-center mb-8 max-w-4xl mx-auto">
-                    <div className="flex space-x-8 text-slate-500 dark:text-slate-400 font-medium mx-auto">
+                <nav className="flex justify-between items-center mb-8 max-w-4xl mx-auto z-50">
+                    <div className="flex space-x-8 text-slate-500 dark:text-slate-400 font-medium mx-auto items-center">
                         <Link to="/" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/')}`}>Home</Link>
+                        <div className="relative" onMouseEnter={() => setShowTools(true)} onMouseLeave={() => setShowTools(false)}>
+                            <Link to="/ferramentas" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1 ${isActive('/ferramentas')}`}>
+                                Ferramentas <i className="fas fa-chevron-down text-[10px]"></i>
+                            </Link>
+                            {showTools && (
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-48">
+                                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden py-1">
+                                        {tools.length > 0 ? tools.map(t => (
+                                            <a key={t.id} href={t.url} target="_blank" className="block px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-blue-500 transition-colors">
+                                                {t.icon && <i className={`${t.icon} w-5 text-center mr-1`}></i>}
+                                                {t.name}
+                                            </a>
+                                        )) : <div className="px-4 py-2 text-xs text-slate-400 text-center">Vazio</div>}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        
                         <Link to="/sobre" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/sobre')}`}>Sobre</Link>
+
                         {/* Link discreto para admin */}
                         <Link to="/admin" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/admin')}`}><i className="fas fa-lock text-xs"></i></Link>
                     </div>
@@ -223,16 +248,55 @@
             );
         }
 
+        // --- Página: Ferramentas ---
+        function Tools() {
+            const [tools, setTools] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                fetch('/tools').then(res => res.json()).then(data => {
+                    setTools(data);
+                    setLoading(false);
+                }).catch(() => setLoading(false));
+            }, []);
+
+            return (
+                <div className="glass-card rounded-xl p-8 max-w-2xl mx-auto animate-fade-in">
+                    <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-6 border-b border-slate-200 dark:border-slate-700 pb-4">Ferramentas</h2>
+                    {loading ? (
+                        <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div></div>
+                    ) : (
+                        <div className="grid gap-4">
+                            {tools.map(t => (
+                                <a key={t.id} href={t.url} target="_blank" className="flex items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 transition-colors group">
+                                    {t.icon && <i className={`${t.icon} text-2xl text-slate-500 group-hover:text-blue-500 mr-4 w-8 text-center`}></i>}
+                                    <div>
+                                        <div className="font-bold text-slate-800 dark:text-white group-hover:text-blue-500">{t.name}</div>
+                                        {t.description && <div className="text-sm text-slate-600 dark:text-slate-400">{t.description}</div>}
+                                    </div>
+                                    <i className="fas fa-external-link-alt ml-auto text-slate-400 group-hover:text-blue-500"></i>
+                                </a>
+                            ))}
+                            {tools.length === 0 && <p className="text-slate-500 text-center">Nenhuma ferramenta cadastrada.</p>}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
         // --- Página: Admin ---
         function Admin() {
             const [token, setToken] = useState(localStorage.getItem('admin_token') || '');
             const [isAuthenticated, setIsAuthenticated] = useState(false);
-            const [activeTab, setActiveTab] = useState('projects'); // projects, profile, stats
+            const [activeTab, setActiveTab] = useState('projects'); // projects, profile, stats, tools
             const [projects, setProjects] = useState([]);
             const [stats, setStats] = useState([]);
+            const [tools, setTools] = useState([]);
             const [profileForm, setProfileForm] = useState({});
             const [newProject, setNewProject] = useState({ title: '', description: '', url: '', repo_url: '' });
+            const [newTool, setNewTool] = useState({ name: '', url: '', description: '', icon: '' });
             const [editingId, setEditingId] = useState(null);
+            const [editingToolId, setEditingToolId] = useState(null);
             const [msg, setMsg] = useState('');
 
             useEffect(() => {
@@ -308,6 +372,36 @@
                 setEditingId(null);
             };
 
+            const handleSaveTool = async (e) => {
+                e.preventDefault();
+                const method = editingToolId ? 'PUT' : 'POST';
+                const url = editingToolId ? `/tools/${editingToolId}` : '/tools';
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+                    body: JSON.stringify(newTool)
+                });
+                setNewTool({ name: '', url: '', description: '', icon: '' });
+                setEditingToolId(null);
+                loadData();
+            };
+
+            const startEditingTool = (t) => {
+                setNewTool({ name: t.name, url: t.url, description: t.description || '', icon: t.icon || '' });
+                setEditingToolId(t.id);
+            };
+            
+            const cancelEditingTool = () => {
+                setNewTool({ name: '', url: '', description: '', icon: '' });
+                setEditingToolId(null);
+            };
+
+            const handleDeleteTool = async (id) => {
+                if(!confirm('Tem certeza?')) return;
+                await fetch(`/tools/${id}`, { method: 'DELETE', headers: { 'x-admin-token': token } });
+                loadData();
+            };
+
             const handleUpdateProfile = async (e) => {
                 e.preventDefault();
                 await fetch('/profile', {
@@ -349,13 +443,13 @@
 
                     {/* Tabs */}
                     <div className="flex space-x-4 mb-6 border-b border-slate-200 dark:border-slate-700 pb-2">
-                        {['projects', 'profile', 'stats'].map(tab => (
+                        {['projects', 'tools', 'profile', 'stats'].map(tab => (
                             <button 
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-4 py-2 rounded capitalize ${activeTab === tab ? 'bg-blue-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
                             >
-                                {tab === 'projects' ? 'Projetos' : tab === 'profile' ? 'Perfil' : 'Estatísticas'}
+                                {tab === 'projects' ? 'Projetos' : tab === 'tools' ? 'Ferramentas' : tab === 'profile' ? 'Perfil' : 'Estatísticas'}
                             </button>
                         ))}
                     </div>
@@ -392,6 +486,45 @@
                                             <div className="flex gap-2">
                                                 <button onClick={() => startEditing(p)} className="text-blue-400 hover:text-blue-300 p-2"><i className="fas fa-edit"></i></button>
                                                 <button onClick={() => handleDeleteProject(p.id)} className="text-red-400 hover:text-red-300 p-2"><i className="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TOOLS TAB */}
+                        {activeTab === 'tools' && (
+                            <div className="space-y-8">
+                                <form onSubmit={handleSaveTool} className="grid gap-4 p-4 bg-slate-100 dark:bg-slate-800/50 rounded border border-slate-200 dark:border-slate-700">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-slate-800 dark:text-white font-bold">{editingToolId ? 'Editar Ferramenta' : 'Nova Ferramenta'}</h3>
+                                        {editingToolId && <button type="button" onClick={cancelEditingTool} className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Cancelar Edição</button>}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <input required placeholder="Nome" value={newTool.name} onChange={e => setNewTool({...newTool, name: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input placeholder="Ícone (ex: fas fa-wrench)" value={newTool.icon} onChange={e => setNewTool({...newTool, icon: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    </div>
+                                    <input required placeholder="URL" value={newTool.url} onChange={e => setNewTool({...newTool, url: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <input placeholder="Descrição (Opcional)" value={newTool.description} onChange={e => setNewTool({...newTool, description: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <button type="submit" className={`${editingToolId ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'} text-white py-2 rounded font-medium`}>
+                                        {editingToolId ? 'Salvar Ferramenta' : 'Adicionar Ferramenta'}
+                                    </button>
+                                </form>
+
+                                <div className="space-y-2">
+                                    {tools.map(t => (
+                                        <div key={t.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/30 rounded border border-slate-200 dark:border-slate-700">
+                                            <div className="flex items-center gap-3">
+                                                {t.icon && <i className={`${t.icon} text-slate-500 dark:text-slate-400 w-6 text-center`}></i>}
+                                                <div>
+                                                    <div className="font-bold text-slate-800 dark:text-white">{t.name}</div>
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400">{t.url}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => startEditingTool(t)} className="text-blue-400 hover:text-blue-300 p-2"><i className="fas fa-edit"></i></button>
+                                                <button onClick={() => handleDeleteTool(t.id)} className="text-red-400 hover:text-red-300 p-2"><i className="fas fa-trash"></i></button>
                                             </div>
                                         </div>
                                     ))}
@@ -495,6 +628,7 @@
                             <Switch>
                                 <Route exact path="/" component={Home} />
                                 <Route path="/sobre" component={About} />
+                                <Route path="/ferramentas" component={Tools} />
                                 <Route path="/admin" component={Admin} />
                             </Switch>
                         </div>

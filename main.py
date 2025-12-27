@@ -2,12 +2,12 @@ import os
 import secrets
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException, Header, Depends, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import Session, select, func
+from sqlmodel import Session, select, func, SQLModel, Field
 from database import engine, create_db_and_tables
 from models import Project, Visitor, Profile
 
@@ -20,6 +20,13 @@ load_dotenv(".env", override=False)
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "changeme")
 
 app = FastAPI(title="Linktree-like API")
+
+class Tool(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    url: str
+    description: Optional[str] = None
+    icon: Optional[str] = None
 
 app.add_middleware(
     CORSMiddleware,
@@ -65,6 +72,10 @@ def admin_page():
 def about_page():
     return FileResponse("static/index.html")
 
+@app.get("/ferramentas")
+def tools_page():
+    return FileResponse("static/index.html")
+
 
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
@@ -75,6 +86,10 @@ def robots_txt():
 def sitemap_xml():
     return FileResponse("static/sitemap.xml")
 
+def check_admin_token(x_admin_token: str = Header(None)):
+    if x_admin_token is None or not secrets.compare_digest(x_admin_token, ADMIN_TOKEN):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
 
 @app.get("/projects")
 def read_projects():
@@ -82,6 +97,44 @@ def read_projects():
         projects = session.exec(select(Project)).all()
         return projects
 
+@app.get("/tools")
+def read_tools():
+    with Session(engine) as session:
+        tools = session.exec(select(Tool)).all()
+        return tools
+
+@app.post("/tools", dependencies=[Depends(check_admin_token)])
+def create_tool(tool: Tool):
+    with Session(engine) as session:
+        session.add(tool)
+        session.commit()
+        session.refresh(tool)
+        return tool
+
+@app.put("/tools/{tool_id}", dependencies=[Depends(check_admin_token)])
+def update_tool(tool_id: int, tool: Tool):
+    with Session(engine) as session:
+        db_tool = session.get(Tool, tool_id)
+        if not db_tool:
+            raise HTTPException(404, "Not found")
+        db_tool.name = tool.name
+        db_tool.url = tool.url
+        db_tool.description = tool.description
+        db_tool.icon = tool.icon
+        session.add(db_tool)
+        session.commit()
+        session.refresh(db_tool)
+        return db_tool
+
+@app.delete("/tools/{tool_id}", dependencies=[Depends(check_admin_token)])
+def delete_tool(tool_id: int):
+    with Session(engine) as session:
+        db_tool = session.get(Tool, tool_id)
+        if not db_tool:
+            raise HTTPException(404, "Not found")
+        session.delete(db_tool)
+        session.commit()
+        return {"ok": True}
 
 # Security headers middleware
 @app.middleware("http")
@@ -100,11 +153,6 @@ async def add_security_headers(request, call_next):
 def head_handler(path: str):
     # respond OK to HEAD for monitoring/scanners
     return Response(status_code=200)
-
-
-def check_admin_token(x_admin_token: str = Header(None)):
-    if x_admin_token is None or not secrets.compare_digest(x_admin_token, ADMIN_TOKEN):
-        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 @app.post("/projects", dependencies=[Depends(check_admin_token)])
