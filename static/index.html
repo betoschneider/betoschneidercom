@@ -232,6 +232,7 @@
             const [stats, setStats] = useState([]);
             const [profileForm, setProfileForm] = useState({});
             const [newProject, setNewProject] = useState({ title: '', description: '', url: '', repo_url: '' });
+            const [editingId, setEditingId] = useState(null);
             const [msg, setMsg] = useState('');
 
             useEffect(() => {
@@ -282,15 +283,29 @@
                 loadData();
             };
 
-            const handleAddProject = async (e) => {
+            const handleSaveProject = async (e) => {
                 e.preventDefault();
-                await fetch('/projects', {
-                    method: 'POST',
+                const method = editingId ? 'PUT' : 'POST';
+                const url = editingId ? `/projects/${editingId}` : '/projects';
+
+                await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
                     body: JSON.stringify(newProject)
                 });
                 setNewProject({ title: '', description: '', url: '', repo_url: '' });
+                setEditingId(null);
                 loadData();
+            };
+
+            const startEditing = (p) => {
+                setNewProject({ title: p.title, description: p.description, url: p.url, repo_url: p.repo_url || '' });
+                setEditingId(p.id);
+            };
+
+            const cancelEditing = () => {
+                setNewProject({ title: '', description: '', url: '', repo_url: '' });
+                setEditingId(null);
             };
 
             const handleUpdateProfile = async (e) => {
@@ -351,15 +366,20 @@
                         {/* PROJECTS TAB */}
                         {activeTab === 'projects' && (
                             <div className="space-y-8">
-                                <form onSubmit={handleAddProject} className="grid gap-4 p-4 bg-slate-100 dark:bg-slate-800/50 rounded border border-slate-200 dark:border-slate-700">
-                                    <h3 className="text-slate-800 dark:text-white font-bold">Novo Projeto</h3>
+                                <form onSubmit={handleSaveProject} className="grid gap-4 p-4 bg-slate-100 dark:bg-slate-800/50 rounded border border-slate-200 dark:border-slate-700">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-slate-800 dark:text-white font-bold">{editingId ? 'Editar Projeto' : 'Novo Projeto'}</h3>
+                                        {editingId && <button type="button" onClick={cancelEditing} className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Cancelar Edição</button>}
+                                    </div>
                                     <input required placeholder="Título" value={newProject.title} onChange={e => setNewProject({...newProject, title: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     <input required placeholder="Descrição" value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     <div className="grid grid-cols-2 gap-4">
                                         <input required placeholder="URL (https://...)" value={newProject.url} onChange={e => setNewProject({...newProject, url: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                         <input placeholder="Repo URL (Opcional)" value={newProject.repo_url} onChange={e => setNewProject({...newProject, repo_url: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     </div>
-                                    <button type="submit" className="bg-green-600 hover:bg-green-500 text-white py-2 rounded font-medium">Adicionar</button>
+                                    <button type="submit" className={`${editingId ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'} text-white py-2 rounded font-medium`}>
+                                        {editingId ? 'Salvar Alterações' : 'Adicionar'}
+                                    </button>
                                 </form>
 
                                 <div className="space-y-2">
@@ -369,7 +389,10 @@
                                                 <div className="font-bold text-slate-800 dark:text-white">{p.title}</div>
                                                 <div className="text-xs text-slate-500 dark:text-slate-400">{p.url}</div>
                                             </div>
-                                            <button onClick={() => handleDeleteProject(p.id)} className="text-red-400 hover:text-red-300 p-2"><i className="fas fa-trash"></i></button>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => startEditing(p)} className="text-blue-400 hover:text-blue-300 p-2"><i className="fas fa-edit"></i></button>
+                                                <button onClick={() => handleDeleteProject(p.id)} className="text-red-400 hover:text-red-300 p-2"><i className="fas fa-trash"></i></button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
