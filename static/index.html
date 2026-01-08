@@ -16,6 +16,7 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-router-dom@5.3.4/umd/react-router-dom.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -91,6 +92,7 @@
                         </div>
                         
                         <Link to="/sobre" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/sobre')}`}>Sobre</Link>
+                        <Link to="/cv" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/cv')}`}>CV</Link>
 
                         {/* Link discreto para admin */}
                         <Link to="/admin" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/admin')}`}><i className="fas fa-lock text-xs"></i></Link>
@@ -599,6 +601,47 @@
             );
         }
 
+        // --- Página: CV ---
+        function CV() {
+            const [markdown, setMarkdown] = useState('');
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                fetch('/static/cv.md')
+                    .then(res => res.text())
+                    .then(text => {
+                        // Configurar Marked para processar quebras de linha e links
+                        marked.setOptions({
+                            breaks: true,      // Converte quebras de linha simples em <br>
+                            gfm: true,         // GitHub Flavored Markdown
+                            mangle: false,     // Não mangle emails
+                            headerIds: true,   // Adicionar ids aos headers (padrão)
+                            pedantic: false,   // Não ser pedante
+                            smartLists: true,  // Listas inteligentes
+                            smartypants: true  // Aspas inteligentes
+                        });
+                        setMarkdown(marked.parse(text));
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        console.error('Erro ao carregar CV:', err);
+                        setMarkdown('<p>Erro ao carregar o currículo.</p>');
+                        setLoading(false);
+                    });
+            }, []);
+
+            return (
+                <div className="glass-card rounded-xl p-8 max-w-4xl mx-auto animate-fade-in bg-white/60 dark:bg-slate-800/30">
+                    <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-6 border-b border-slate-200 dark:border-slate-700 pb-4">Currículo</h2>
+                    {loading ? (
+                        <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div></div>
+                    ) : (
+                        <div className="max-w-none text-slate-700 dark:text-slate-300 [&_*]:text-slate-700 [&_*]:dark:text-slate-300 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-800 [&_h1]:dark:text-white [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-800 [&_h2]:dark:text-white [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-slate-800 [&_h3]:dark:text-white [&_h3]:mb-2 [&_p]:mb-4 [&_ul]:mb-4 [&_ol]:mb-4 [&_li]:mb-1" dangerouslySetInnerHTML={{ __html: markdown }}></div>
+                    )}
+                </div>
+            );
+        }
+
         // --- App Principal ---
         function App() {
             const [profile, setProfile] = useState(null);
@@ -630,6 +673,7 @@
                                 <Route exact path="/" component={Home} />
                                 <Route path="/sobre" component={About} />
                                 <Route path="/ferramentas" component={Tools} />
+                                <Route path="/cv" component={CV} />
                                 <Route path="/admin" component={Admin} />
                             </Switch>
                         </div>

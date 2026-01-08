@@ -77,6 +77,11 @@ def tools_page():
     return FileResponse("static/index.html")
 
 
+@app.get("/cv")
+def cv_page():
+    return FileResponse("static/index.html")
+
+
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
     return FileResponse("static/robots.txt")
