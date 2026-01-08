@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfólio</title>
     <link rel="canonical" href="https://betoschneider.com/" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -25,30 +27,35 @@
             --glass-bg: rgba(255, 255, 255, 0.6);
             --glass-border: rgba(0, 0, 0, 0.1);
         }
+
         html.dark {
             --bg-start: #0f172a;
             --bg-end: #1e293b;
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.05);
         }
+
         body {
             background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             transition: background 0.5s ease;
         }
+
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
             transition: background 0.3s ease, border 0.3s ease;
         }
+
         .nav-link.active {
             color: #60a5fa;
             border-bottom: 2px solid #60a5fa;
         }
     </style>
 </head>
+
 <body>
     <div id="root">
         <div class="text-slate-500 dark:text-white text-center mt-20 animate-pulse">Carregando aplicação...</div>
@@ -66,8 +73,21 @@
             const [showTools, setShowTools] = useState(false);
 
             useEffect(() => {
-                fetch('/tools').then(res => res.json()).then(setTools).catch(() => {});
+                fetch('/tools').then(res => res.json()).then(setTools).catch(() => { });
             }, []);
+
+            if (location.pathname === '/cv') {
+                return (
+                    <nav className="flex justify-between items-center mb-8 max-w-4xl mx-auto z-50 w-full px-4">
+                        <Link to="/" className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-600 dark:text-slate-400 transition-colors">
+                            <i className="fas fa-home"></i>
+                        </Link>
+                        <button onClick={toggleTheme} className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-600 dark:text-yellow-300 transition-colors">
+                            {theme === 'dark' ? <i className="fas fa-sun"></i> : <i className="fas fa-moon text-slate-600"></i>}
+                        </button>
+                    </nav>
+                );
+            }
 
             return (
                 <nav className="flex justify-between items-center mb-8 max-w-4xl mx-auto z-50">
@@ -90,9 +110,8 @@
                                 </div>
                             )}
                         </div>
-                        
+
                         <Link to="/sobre" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/sobre')}`}>Sobre</Link>
-                        <Link to="/cv" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/cv')}`}>CV</Link>
 
                         {/* Link discreto para admin */}
                         <Link to="/admin" className={`nav-link pb-1 hover:text-slate-900 dark:hover:text-white transition-colors ${isActive('/admin')}`}><i className="fas fa-lock text-xs"></i></Link>
@@ -142,14 +161,14 @@
                     {profile && (
                         <div className="flex flex-col items-center text-center mb-16 space-y-6">
                             <div className="relative">
-                                <img 
-                                    src={profile.photo_url || "https://ui-avatars.com/api/?name=" + profile.name} 
+                                <img
+                                    src={profile.photo_url || "https://ui-avatars.com/api/?name=" + profile.name}
                                     alt={profile.name}
                                     className="w-32 h-32 rounded-full border-4 border-slate-700 shadow-2xl object-cover"
                                 />
                                 <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-slate-800"></div>
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <h1 className="text-4xl font-bold text-slate-800 dark:text-white tracking-tight">{profile.name}</h1>
                                 <p className="text-xl text-blue-400 font-medium">{profile.role}</p>
@@ -225,7 +244,7 @@
             const [profile, setProfile] = useState(null);
 
             useEffect(() => {
-                fetch('/profile').then(res => res.json()).then(setProfile).catch(() => {});
+                fetch('/profile').then(res => res.json()).then(setProfile).catch(() => { });
             }, []);
 
             return (
@@ -325,10 +344,10 @@
 
             const loadData = async () => {
                 const headers = { 'x-admin-token': token };
-                
+
                 // Carregar Projetos
                 fetch('/projects').then(r => r.json()).then(setProjects);
-                
+
                 // Carregar Profile para Edição
                 fetch('/profile').then(r => r.json()).then(setProfileForm);
 
@@ -342,10 +361,10 @@
             };
 
             const handleDeleteProject = async (id) => {
-                if(!confirm('Tem certeza?')) return;
-                await fetch(`/projects/${id}`, { 
-                    method: 'DELETE', 
-                    headers: { 'x-admin-token': token } 
+                if (!confirm('Tem certeza?')) return;
+                await fetch(`/projects/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'x-admin-token': token }
                 });
                 loadData();
             };
@@ -393,14 +412,14 @@
                 setNewTool({ name: t.name, url: t.url, description: t.description || '', icon: t.icon || '' });
                 setEditingToolId(t.id);
             };
-            
+
             const cancelEditingTool = () => {
                 setNewTool({ name: '', url: '', description: '', icon: '' });
                 setEditingToolId(null);
             };
 
             const handleDeleteTool = async (id) => {
-                if(!confirm('Tem certeza?')) return;
+                if (!confirm('Tem certeza?')) return;
                 await fetch(`/tools/${id}`, { method: 'DELETE', headers: { 'x-admin-token': token } });
                 loadData();
             };
@@ -421,8 +440,8 @@
                     <div className="max-w-md mx-auto glass-card p-8 rounded-xl text-center">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">Acesso Admin</h2>
                         <form onSubmit={handleLogin} className="space-y-4">
-                            <input 
-                                type="password" 
+                            <input
+                                type="password"
                                 value={token}
                                 onChange={e => setToken(e.target.value)}
                                 placeholder="Token de Acesso"
@@ -441,13 +460,13 @@
                 <div className="max-w-4xl mx-auto">
                     <div className="flex justify-between items-center mb-8">
                         <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Painel Admin</h2>
-                        <button onClick={() => {localStorage.removeItem('admin_token'); setIsAuthenticated(false);}} className="text-red-400 hover:text-red-300 text-sm">Sair</button>
+                        <button onClick={() => { localStorage.removeItem('admin_token'); setIsAuthenticated(false); }} className="text-red-400 hover:text-red-300 text-sm">Sair</button>
                     </div>
 
                     {/* Tabs */}
                     <div className="flex space-x-4 mb-6 border-b border-slate-200 dark:border-slate-700 pb-2">
                         {['projects', 'tools', 'profile', 'stats'].map(tab => (
-                            <button 
+                            <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-4 py-2 rounded capitalize ${activeTab === tab ? 'bg-blue-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
@@ -459,7 +478,7 @@
 
                     {/* Tab Content */}
                     <div className="glass-card p-6 rounded-xl">
-                        
+
                         {/* PROJECTS TAB */}
                         {activeTab === 'projects' && (
                             <div className="space-y-8">
@@ -468,11 +487,11 @@
                                         <h3 className="text-slate-800 dark:text-white font-bold">{editingId ? 'Editar Projeto' : 'Novo Projeto'}</h3>
                                         {editingId && <button type="button" onClick={cancelEditing} className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Cancelar Edição</button>}
                                     </div>
-                                    <input required placeholder="Título" value={newProject.title} onChange={e => setNewProject({...newProject, title: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
-                                    <input required placeholder="Descrição" value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <input required placeholder="Título" value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <input required placeholder="Descrição" value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     <div className="grid grid-cols-2 gap-4">
-                                        <input required placeholder="URL (https://...)" value={newProject.url} onChange={e => setNewProject({...newProject, url: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
-                                        <input placeholder="Repo URL (Opcional)" value={newProject.repo_url} onChange={e => setNewProject({...newProject, repo_url: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input required placeholder="URL (https://...)" value={newProject.url} onChange={e => setNewProject({ ...newProject, url: e.target.value })} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input placeholder="Repo URL (Opcional)" value={newProject.repo_url} onChange={e => setNewProject({ ...newProject, repo_url: e.target.value })} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     </div>
                                     <button type="submit" className={`${editingId ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'} text-white py-2 rounded font-medium`}>
                                         {editingId ? 'Salvar Alterações' : 'Adicionar'}
@@ -505,11 +524,11 @@
                                         {editingToolId && <button type="button" onClick={cancelEditingTool} className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Cancelar Edição</button>}
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <input required placeholder="Nome" value={newTool.name} onChange={e => setNewTool({...newTool, name: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
-                                        <input placeholder="Ícone (ex: fas fa-wrench)" value={newTool.icon} onChange={e => setNewTool({...newTool, icon: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input required placeholder="Nome" value={newTool.name} onChange={e => setNewTool({ ...newTool, name: e.target.value })} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input placeholder="Ícone (ex: fas fa-wrench)" value={newTool.icon} onChange={e => setNewTool({ ...newTool, icon: e.target.value })} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     </div>
-                                    <input required placeholder="URL" value={newTool.url} onChange={e => setNewTool({...newTool, url: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
-                                    <input placeholder="Descrição (Opcional)" value={newTool.description} onChange={e => setNewTool({...newTool, description: e.target.value})} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <input required placeholder="URL" value={newTool.url} onChange={e => setNewTool({ ...newTool, url: e.target.value })} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <input placeholder="Descrição (Opcional)" value={newTool.description} onChange={e => setNewTool({ ...newTool, description: e.target.value })} className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     <button type="submit" className={`${editingToolId ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'} text-white py-2 rounded font-medium`}>
                                         {editingToolId ? 'Salvar Ferramenta' : 'Adicionar Ferramenta'}
                                     </button>
@@ -541,29 +560,29 @@
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <label className="block">
                                         <span className="text-slate-500 dark:text-slate-400 text-sm">Nome</span>
-                                        <input value={profileForm.name || ''} onChange={e => setProfileForm({...profileForm, name: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input value={profileForm.name || ''} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     </label>
                                     <label className="block">
                                         <span className="text-slate-500 dark:text-slate-400 text-sm">Cargo</span>
-                                        <input value={profileForm.role || ''} onChange={e => setProfileForm({...profileForm, role: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input value={profileForm.role || ''} onChange={e => setProfileForm({ ...profileForm, role: e.target.value })} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     </label>
                                 </div>
                                 <label className="block">
                                     <span className="text-slate-500 dark:text-slate-400 text-sm">Descrição</span>
-                                    <textarea rows="3" value={profileForm.description || ''} onChange={e => setProfileForm({...profileForm, description: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <textarea rows="3" value={profileForm.description || ''} onChange={e => setProfileForm({ ...profileForm, description: e.target.value })} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                 </label>
                                 <label className="block">
                                     <span className="text-slate-500 dark:text-slate-400 text-sm">Stacks (separadas por vírgula)</span>
-                                    <input value={profileForm.stacks || ''} onChange={e => setProfileForm({...profileForm, stacks: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                    <input value={profileForm.stacks || ''} onChange={e => setProfileForm({ ...profileForm, stacks: e.target.value })} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                 </label>
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <label className="block">
                                         <span className="text-slate-500 dark:text-slate-400 text-sm">Foto URL</span>
-                                        <input value={profileForm.photo_url || ''} onChange={e => setProfileForm({...profileForm, photo_url: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input value={profileForm.photo_url || ''} onChange={e => setProfileForm({ ...profileForm, photo_url: e.target.value })} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     </label>
                                     <label className="block">
                                         <span className="text-slate-500 dark:text-slate-400 text-sm">Localização</span>
-                                        <input value={profileForm.location || ''} onChange={e => setProfileForm({...profileForm, location: e.target.value})} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                                        <input value={profileForm.location || ''} onChange={e => setProfileForm({ ...profileForm, location: e.target.value })} className="w-full mt-1 p-2 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
                                     </label>
                                 </div>
                                 <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-medium mt-4">Salvar Alterações</button>
@@ -632,7 +651,6 @@
 
             return (
                 <div className="glass-card rounded-xl p-8 max-w-4xl mx-auto animate-fade-in bg-white/60 dark:bg-slate-800/30">
-                    <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-6 border-b border-slate-200 dark:border-slate-700 pb-4">Currículo</h2>
                     {loading ? (
                         <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div></div>
                     ) : (
@@ -646,6 +664,7 @@
         function App() {
             const [profile, setProfile] = useState(null);
             const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+            const location = useLocation();
 
             useEffect(() => {
                 if (theme === 'dark') {
@@ -656,38 +675,56 @@
                 localStorage.setItem('theme', theme);
             }, [theme]);
 
+            // Controle de indexação SEO dinâmico
+            useEffect(() => {
+                const robotsMeta = document.querySelector('meta[name="robots"]');
+                const isNoIndexPage = location.pathname === '/cv' || location.pathname === '/admin';
+
+                if (isNoIndexPage) {
+                    if (!robotsMeta) {
+                        const meta = document.createElement('meta');
+                        meta.name = "robots";
+                        meta.content = "noindex, nofollow";
+                        document.head.appendChild(meta);
+                    } else {
+                        robotsMeta.content = "noindex, nofollow";
+                    }
+                } else if (robotsMeta) {
+                    robotsMeta.content = "index, follow";
+                }
+            }, [location.pathname]);
+
             const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
             // Carregar perfil globalmente para o footer
             useEffect(() => {
-                fetch('/profile').then(res => res.json()).then(setProfile).catch(() => {});
+                fetch('/profile').then(res => res.json()).then(setProfile).catch(() => { });
             }, []);
 
             return (
-                <BrowserRouter>
-                    <div className="container mx-auto px-4 py-8 min-h-screen flex flex-col">
-                        <Navigation theme={theme} toggleTheme={toggleTheme} />
-                        
-                        <div className="flex-grow">
-                            <Switch>
-                                <Route exact path="/" component={Home} />
-                                <Route path="/sobre" component={About} />
-                                <Route path="/ferramentas" component={Tools} />
-                                <Route path="/cv" component={CV} />
-                                <Route path="/admin" component={Admin} />
-                            </Switch>
-                        </div>
+                <div className="container mx-auto px-4 py-8 min-h-screen flex flex-col">
+                    <Navigation theme={theme} toggleTheme={toggleTheme} />
 
-                        <footer className="mt-20 text-center text-slate-600 text-sm">
-                            <p>&copy; {new Date().getFullYear()} {profile?.name || 'Dev'}. Feito com FastAPI & React.</p>
-                        </footer>
+                    <div className="flex-grow">
+                        <Switch>
+                            <Route exact path="/" component={Home} />
+                            <Route path="/sobre" component={About} />
+                            <Route path="/ferramentas" component={Tools} />
+                            <Route path="/cv" component={CV} />
+                            <Route path="/admin" component={Admin} />
+                        </Switch>
                     </div>
-                </BrowserRouter>
+
+                    <footer className="mt-20 text-center text-slate-600 text-sm">
+                        <p>&copy; {new Date().getFullYear()} {profile?.name || 'Dev'}. Feito com FastAPI & React.</p>
+                    </footer>
+                </div>
             );
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(<BrowserRouter><App /></BrowserRouter>);
     </script>
 </body>
+
 </html>
