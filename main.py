@@ -79,7 +79,7 @@ def tools_page():
 
 @app.get("/cv")
 def cv_page():
-    return FileResponse("static/index.html")
+    return FileResponse("static/index.html", headers={"X-Robots-Tag": "noindex, nofollow"})
 
 
 @app.get("/robots.txt", include_in_schema=False)
