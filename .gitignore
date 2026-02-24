@@ -3,3 +3,4 @@ projects.db
 .env
 __pycache__/
 projects.db.bak
+index.html.bak
