@@ -19,7 +19,6 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          command_timeout: 20m
           script: |
             cd /var/www/betoschneidercom || exit
             echo "📥 Atualizando código..."
@@ -27,7 +26,7 @@ jobs:
             git reset --hard origin/main
 
             echo "🐳 Atualizando containers..."
-            docker compose down --rmi local
-            docker compose up --build -d
+            docker-compose down --rmi local
+            docker-compose up --build -d
 
             echo "✅ Deploy concluído com sucesso!"
