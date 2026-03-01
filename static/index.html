@@ -77,12 +77,14 @@
             --bg-gradient: radial-gradient(circle at top right, #1e293b, #0f172a);
         }
 
+        html,
         body {
             background: var(--bg-gradient);
             min-height: 100vh;
             color: #1e293b;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-x: hidden;
+            width: 100%;
         }
 
         .dark body {
@@ -185,7 +187,17 @@
         .text-gradient {
             background: linear-gradient(to right, #3b82f6, #60a5fa);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
         @media print {
@@ -226,8 +238,10 @@
 </head>
 
 <body>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
+    <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
 
     <div id="root">
         <div class="min-h-screen flex items-center justify-center">
@@ -261,7 +275,7 @@
 
             return (
                 <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-4' : 'py-6'}`}>
-                    <div className="max-w-5xl mx-auto px-6">
+                    <div className="max-w-5xl mx-auto px-4 sm:px-6">
                         <div className={`glass rounded-2xl px-6 py-3 flex items-center justify-between shadow-lg shadow-black/5`}>
                             <Link to="/" className="flex items-center gap-2 group">
                                 <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold group-hover:rotate-12 transition-transform">
@@ -270,11 +284,11 @@
                                 <span className="font-bold text-lg hidden sm:block">Beto Schneider</span>
                             </Link>
 
-                            <div className="flex items-center gap-1 md:gap-8">
-                                <div className="flex items-center gap-1 md:gap-4 font-medium text-sm text-slate-500 dark:text-slate-400">
-                                    <Link to="/" className={`px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isPageActive('/') ? 'text-primary-500 bg-primary-500/10' : ''}`}>Home</Link>
+                            <div className="flex items-center gap-1 sm:gap-4 md:gap-8">
+                                <div className="flex items-center gap-0.5 sm:gap-1 md:gap-4 font-medium text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                                    <Link to="/" className={`px-2 sm:px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isPageActive('/') ? 'text-primary-500 bg-primary-500/10' : ''}`}>Home</Link>
                                     <div className="relative group" onMouseEnter={() => setShowTools(true)} onMouseLeave={() => setShowTools(false)}>
-                                        <Link to="/ferramentas" className={`px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1 ${isPageActive('/ferramentas') ? 'text-primary-500 bg-primary-500/10' : ''}`}>
+                                        <Link to="/ferramentas" className={`px-2 sm:px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1 ${isPageActive('/ferramentas') ? 'text-primary-500 bg-primary-500/10' : ''}`}>
                                             Apps <i className="fas fa-chevron-down text-[10px] mt-0.5"></i>
                                         </Link>
                                         <AnimatePresence>
@@ -283,7 +297,7 @@
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     exit={{ opacity: 0, y: 10 }}
-                                                    className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56"
+                                                    className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56 px-4"
                                                 >
                                                     <div className="glass rounded-xl shadow-2xl overflow-hidden py-1.5 border border-white/20">
                                                         {tools.length > 0 ? tools.map(t => (
@@ -299,18 +313,18 @@
                                             )}
                                         </AnimatePresence>
                                     </div>
-                                    <Link to="/sobre" className={`px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isPageActive('/sobre') ? 'text-primary-500 bg-primary-500/10' : ''}`}>Sobre</Link>
-                                    <Link to="/cv" className={`px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isPageActive('/cv') ? 'text-primary-500 bg-primary-500/10' : ''}`}>CV</Link>
-                                    <Link to="/admin" className={`px-3 py-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isPageActive('/admin') ? 'text-primary-500 bg-primary-500/10' : ''}`} title="Painel Admin">
+                                    <Link to="/sobre" className={`px-2 sm:px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isPageActive('/sobre') ? 'text-primary-500 bg-primary-500/10' : ''}`}>Sobre</Link>
+                                    <Link to="/cv" className={`px-2 sm:px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isPageActive('/cv') ? 'text-primary-500 bg-primary-500/10' : ''}`}>CV</Link>
+                                    <Link to="/admin" className={`px-1.5 sm:px-3 py-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isPageActive('/admin') ? 'text-primary-500 bg-primary-500/10' : ''}`} title="Painel Admin">
                                         <i className="fas fa-lock text-[10px] opacity-40 hover:opacity-100 transition-opacity"></i>
                                     </Link>
                                 </div>
 
-                                <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2 hidden sm:block"></div>
+                                <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
 
-                                <div className="flex items-center gap-2">
-                                    <button onClick={toggleTheme} className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-yellow-400 flex items-center justify-center transition-colors">
-                                        {theme === 'dark' ? <i className="fas fa-sun"></i> : <i className="fas fa-moon"></i>}
+                                <div className="flex items-center gap-1 sm:gap-2">
+                                    <button onClick={toggleTheme} className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-yellow-400 flex items-center justify-center transition-colors">
+                                        {theme === 'dark' ? <i className="fas fa-sun text-sm"></i> : <i className="fas fa-moon text-sm"></i>}
                                     </button>
                                 </div>
                             </div>
@@ -325,7 +339,7 @@
             return (
                 <div className="min-h-screen flex flex-col font-sans">
                     <Navigation theme={theme} toggleTheme={toggleTheme} />
-                    <main className="flex-grow pt-32 pb-20 px-6 max-w-5xl mx-auto w-full">
+                    <main className="flex-grow pt-32 pb-20 px-4 sm:px-6 max-w-5xl mx-auto w-full">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={window.location.pathname}
@@ -339,7 +353,7 @@
                         </AnimatePresence>
                     </main>
                     <footer className="py-12 border-t border-slate-200 dark:border-white/5 text-center text-slate-500 text-sm">
-                        <div className="max-w-5xl mx-auto px-6">
+                        <div className="max-w-5xl mx-auto px-4 sm:px-6">
                             <p className="font-medium">&copy; {new Date().getFullYear()} Beto Schneider</p>
                             <p className="mt-1 opacity-60">Movido a FastAPI & uv</p>
                         </div>
@@ -385,12 +399,12 @@
                                 Disponível para projetos
                             </motion.div>
 
-                            <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+                            <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight">
                                 Criando experiências <br />
                                 <span className="text-gradient">digitais de alto nível.</span>
                             </h1>
 
-                            <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
+                            <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
                                 {profile?.description}
                             </p>
 
@@ -781,12 +795,12 @@
                         </button>
                     </header>
 
-                    <div className="flex bg-slate-100 dark:bg-white/5 rounded-2xl p-1.5 w-fit border border-slate-200 dark:border-white/5">
+                    <div className="flex overflow-x-auto max-w-full no-scrollbar bg-slate-100 dark:bg-white/5 rounded-2xl p-1.5 w-fit border border-slate-200 dark:border-white/5">
                         {['projects', 'tools', 'profile', 'stats'].map(t => (
                             <button
                                 key={t}
                                 onClick={() => setActiveTab(t)}
-                                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === t ? 'bg-white dark:bg-slate-800 text-primary-500 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
+                                className={`px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === t ? 'bg-white dark:bg-slate-800 text-primary-500 shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
                             >
                                 {t === 'projects' ? 'Projetos' : t === 'tools' ? 'Ferramentas' : t === 'profile' ? 'Perfil' : 'Stats'}
                             </button>
