@@ -10,9 +10,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia o código
 COPY . /app
 
-# Cria usuário não-root (opcional)
-# RUN useradd -m appuser || true
-# USER appuser
+# Cria usuário não-root
+RUN adduser --disabled-password --gecos "" appuser
+RUN chown -R appuser:appuser /app
+USER appuser
 
 EXPOSE 8001
 

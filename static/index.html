@@ -658,7 +658,7 @@
 
         // --- Admin Dashboard ---
         function Admin() {
-            const [token, setToken] = useState(localStorage.getItem('admin_token') || '');
+            const [token, setToken] = useState(sessionStorage.getItem('admin_token') || '');
             const [isAuthenticated, setIsAuthenticated] = useState(false);
             const [activeTab, setActiveTab] = useState('projects');
             const [projects, setProjects] = useState([]);
@@ -678,7 +678,7 @@
                     const res = await fetch('/admin/stats', { headers: { 'x-admin-token': currentToken } });
                     if (res.ok) {
                         setIsAuthenticated(true);
-                        localStorage.setItem('admin_token', currentToken);
+                        sessionStorage.setItem('admin_token', currentToken);
                         loadAllData();
                     } else {
                         setMsg('Token inválido');
@@ -690,7 +690,7 @@
             };
 
             const loadAllData = () => {
-                const headers = { 'x-admin-token': localStorage.getItem('admin_token') };
+                const headers = { 'x-admin-token': sessionStorage.getItem('admin_token') };
                 fetch('/projects').then(r => r.json()).then(setProjects);
                 fetch('/tools').then(r => r.json()).then(setTools);
                 fetch('/profile').then(r => r.json()).then(setProfileForm);

@@ -1,13 +1,16 @@
 import os
 import secrets
+import sys
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
-from fastapi import FastAPI, HTTPException, Header, Depends, Request, Response
+from typing import Dict, Any, Optional
+from fastapi import FastAPI, HTTPException, Header, Depends, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import Session, select, func, SQLModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from sqlmodel import Session, select, SQLModel, Field
 from database import engine, create_db_and_tables
 from models import Project, Visitor, Profile
 
@@ -17,7 +20,10 @@ from models import Project, Visitor, Profile
 load_dotenv("/var/www/.env", override=False)
 load_dotenv(".env", override=False)
 
-ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "changeme")
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
+if not ADMIN_TOKEN:
+    print("ERROR: ADMIN_TOKEN environment variable is required!", file=sys.stderr)
+    sys.exit(1)
 
 app = FastAPI(title="Linktree-like API")
 
@@ -30,7 +36,7 @@ class Tool(SQLModel, table=True):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://betoschneider.com", "http://localhost:8001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,18 +48,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
-    # Auto-migration for repo_url
+    # Auto-migration for repo_url (only if column doesn't exist)
     import sqlite3
     try:
         conn = sqlite3.connect('projects.db')
         cursor = conn.cursor()
-        cursor.execute("ALTER TABLE project ADD COLUMN repo_url TEXT")
-        conn.commit()
-        print("Auto-migration: Added repo_url column.")
+        cursor.execute("PRAGMA table_info(project)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if "repo_url" not in columns:
+            cursor.execute("ALTER TABLE project ADD COLUMN repo_url TEXT")
+            conn.commit()
+            print("Auto-migration: Added repo_url column.")
         conn.close()
-    except sqlite3.OperationalError as e:
-        if "duplicate column name" not in str(e):
-            print(f"Auto-migration error: {e}")
     except Exception as e:
         print(f"Auto-migration unexpected error: {e}")
 
@@ -145,19 +151,13 @@ def delete_tool(tool_id: int):
 @app.middleware("http")
 async def add_security_headers(request, call_next):
     response = await call_next(request)
-    # Basic recommended security headers
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("X-Frame-Options", "DENY")
-    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("Permissions-Policy", "geolocation=()")
     response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    response.headers.setdefault("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://betoschneider.com")
     return response
-
-
-@app.head("/{path:path}", include_in_schema=False)
-def head_handler(path: str):
-    # respond OK to HEAD for monitoring/scanners
-    return Response(status_code=200)
 
 
 @app.post("/projects", dependencies=[Depends(check_admin_token)])
@@ -198,6 +198,43 @@ def delete_project(project_id: int):
         session.delete(db)
         session.commit()
         return {"ok": True}
+
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(429, _rate_limit_exceeded_handler)
+
+
+@app.get("/admin/stats", dependencies=[Depends(check_admin_token)])
+@limiter.limit("10/minute")
+def get_stats(request: Request):
+    with Session(engine) as session:
+        ninety_days_ago = datetime.utcnow() - timedelta(days=90)
+
+        statement = select(Visitor).where(Visitor.timestamp >= ninety_days_ago)
+        results = session.exec(statement).all()
+
+        stats: Dict[str, Any] = {}
+
+        for visitor in results:
+            date_str = visitor.timestamp.strftime("%Y-%m-%d")
+            if date_str not in stats:
+                stats[date_str] = {"total": 0, "pc": 0, "smartphone": 0}
+
+            stats[date_str]["total"] += 1
+            if visitor.device_type == "Smartphone":
+                stats[date_str]["smartphone"] += 1
+            else:
+                stats[date_str]["pc"] += 1
+
+        sorted_stats = []
+        for date_key in sorted(stats.keys()):
+            entry = stats[date_key]
+            entry["date"] = date_key
+            sorted_stats.append(entry)
+
+        return sorted_stats
 
 
 @app.get("/profile")
@@ -241,6 +278,7 @@ def update_profile(new_data: Profile):
 def track_visit(request: Request, user_agent: str = Header(None)):
     if not user_agent:
         user_agent = "Unknown"
+    user_agent = user_agent[:512]
     
     device_type = "PC"
     ua_lower = user_agent.lower()
@@ -258,38 +296,3 @@ def track_visit(request: Request, user_agent: str = Header(None)):
     
     return {"status": "ok"}
 
-
-@app.get("/admin/stats", dependencies=[Depends(check_admin_token)])
-def get_stats():
-    with Session(engine) as session:
-        # Get stats for the last 90 days
-        ninety_days_ago = datetime.utcnow() - timedelta(days=90)
-        
-        # Determine the correct date function based on available functions or simple filtering
-        # SQLite doesn't have sophisticated date functions in all versions, keeping it simple
-        # Grouping by day in python to avoid DB complexity issues
-        
-        statement = select(Visitor).where(Visitor.timestamp >= ninety_days_ago)
-        results = session.exec(statement).all()
-        
-        stats: Dict[str, Any] = {}
-        
-        for visitor in results:
-            date_str = visitor.timestamp.strftime("%Y-%m-%d")
-            if date_str not in stats:
-                stats[date_str] = {"total": 0, "pc": 0, "smartphone": 0}
-            
-            stats[date_str]["total"] += 1
-            if visitor.device_type == "Smartphone":
-                stats[date_str]["smartphone"] += 1
-            else:
-                stats[date_str]["pc"] += 1
-                
-        # Convert to list for chart/table
-        sorted_stats = []
-        for date_key in sorted(stats.keys()):
-            entry = stats[date_key]
-            entry["date"] = date_key
-            sorted_stats.append(entry)
-            
-        return sorted_stats

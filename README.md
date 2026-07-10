@@ -2,66 +2,78 @@
 
 Pequeno projeto que lista projetos (título, descrição, link) e fornece uma página admin para gerenciar os itens.
 
-Requisitos
+## Requisitos
+
 - Python 3.10+
 
-Instalação (PowerShell)
+## Instalação (PowerShell)
 
 ```powershell
 python -m venv .venv; .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Executar
+## Executar
 
 ```powershell
 $env:ADMIN_TOKEN = "seu_token_aqui"
 uvicorn main:app --reload
 ```
 
-Acesse (Docker):
-- Página pública: http://127.0.0.1:8080/
-- Admin: http://127.0.0.1:8080/admin (insira o token admin na caixa)
+Acesse:
+- Página pública: http://127.0.0.1:8000/
+- Admin: http://127.0.0.1:8000/admin (insira o token admin na caixa)
 
-Observações
-- O token admin é lido da variável de ambiente `ADMIN_TOKEN` (padrão `changeme`).
-- Banco usado: SQLite (arquivo `projects.db` criado na raiz).
-- **Importante:** O app procura `.env` em dois locais (em ordem de prioridade):
-  1. `/var/www/.env` (produção em servidor Linux)
-  2. `./.env` (desenvolvimento local)
+> **⚠ Importante:** O `ADMIN_TOKEN` é **obrigatório**. O app não inicia sem ele.
+> Não existe mais o fallback `"changeme"`.
 
-Configurando o Token Admin via .env
-------------------------------------
-Crie um arquivo `.env` na raiz do projeto (ou copie `.env.example`):
+## Configurando o Token Admin via .env
+
+Crie um arquivo `.env` na raiz do projeto:
 
 ```
 ADMIN_TOKEN=seu_token_secreto_aqui
 ```
 
-O arquivo `.env` é automaticamente carregado pelo FastAPI (via `python-dotenv`), e também pelo `docker-compose.yml` via `env_file`.
+O app carrega `.env` de dois locais (em ordem de prioridade):
+1. `/var/www/.env` (produção em servidor Linux)
+2. `./.env` (desenvolvimento local)
 
-Docker
-------
-Você pode rodar a aplicação em contêiner com Docker + docker-compose:
+O arquivo `.env` também é usado pelo `docker-compose.yml` via `env_file`.
 
-Construir e subir (na pasta do projeto):
+## Docker
 
 ```powershell
 docker-compose build
 docker-compose up -d
 ```
 
-Por padrão o `ADMIN_TOKEN` é `changeme`. Para definir outro token via variável de ambiente (PowerShell):
+O container roda como **usuário não-root** (`appuser`) — melhoria de segurança.
 
-```powershell
-$env:ADMIN_TOKEN = "seu_token_aqui"
-docker-compose up -d --build
-```
+O banco `projects.db` é persistido no diretório do projeto via volume mapeado.
 
-O banco `projects.db` será persistido no diretório do projeto via volume mapeado.
+## Segurança embutida
 
-Deploy em Produção (/var/www/html)
------------------------------------
+O app aplica automaticamente:
+
+| Medida | Detalhes |
+|--------|----------|
+| **CORS restrito** | Apenas `https://betoschneider.com` e `http://localhost:8001` |
+| **Token obrigatório** | Sem fallback — app não inicia sem `ADMIN_TOKEN` |
+| **Timing-safe comparison** | `secrets.compare_digest()` contra ataques de timing |
+| **Rate limiting** | 10 req/min no `/admin/stats` (via `slowapi`) |
+| **Content-Security-Policy** | Restringe scripts, estilos, fontes e conexões às origens necessárias |
+| **HSTS** | `max-age=31536000; includeSubDomains` |
+| **X-Content-Type-Options** | `nosniff` |
+| **X-Frame-Options** | `DENY` |
+| **Referrer-Policy** | `strict-origin-when-cross-origin` |
+| **Permissions-Policy** | `geolocation=()` |
+| **Validação de campos** | `max_length` em todos os modelos do banco |
+| **User-Agent truncado** | Limitado a 512 caracteres |
+| **Token no sessionStorage** | Não persiste após fechar o navegador (vs `localStorage`) |
+| **Container não-root** | Docker roda como `appuser`, não como root |
+
+## Deploy em Produção (/var/www)
 
 **Estrutura recomendada:**
 ```
@@ -107,7 +119,6 @@ server {
     server_name seu_dominio.com;
     
     location / {
-      # Se você estiver rodando via Docker (padrão deste projeto), use o host:porta mapeado:
       proxy_pass http://localhost:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -154,4 +165,5 @@ sudo systemctl enable linktree
 - ✅ Use `.env` em `/var/www/.env` (fora de html)
 - ✅ Configure reverse proxy (nginx/apache)
 - ✅ FastAPI serve `static/` automaticamente — nginx não precisa servir arquivos estáticos
+- ✅ Container roda como usuário não-root (`appuser`)
 - ✅ Em ambiente corporativo, use Docker Secrets ou CI/CD secrets
