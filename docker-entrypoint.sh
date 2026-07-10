@@ -9,9 +9,7 @@ fi
 if [ -f /app/projects.db.bak ]; then
     chown appuser:appuser /app/projects.db.bak
 fi
-if [ -d /app/data ]; then
-    chown -R appuser:appuser /app/data
-fi
 
 # Desce para appuser e executa o CMD
-exec su appuser -s /bin/sh -c "exec $@"
+# $* concatena todos os argumentos em uma string unica para o -c
+exec su -s /bin/sh -c "exec $*" appuser
