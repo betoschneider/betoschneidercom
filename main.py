@@ -36,7 +36,7 @@ class Tool(SQLModel, table=True):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://betoschneider.com", "http://localhost:8001"],
+    allow_origins=["https://betoschneider.com", "http://localhost:8001", "http://0.0.0.0:8001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -257,7 +257,7 @@ def update_profile(new_data: Profile):
         if not profile:
             profile = Profile(id=1)
             session.add(profile)
-        
+
         # Update fields
         profile.name = new_data.name
         profile.role = new_data.role
@@ -267,7 +267,7 @@ def update_profile(new_data: Profile):
         profile.photo_url = new_data.photo_url
         profile.social_linkedin = new_data.social_linkedin
         profile.social_github = new_data.social_github
-        
+
         session.add(profile)
         session.commit()
         session.refresh(profile)
@@ -279,20 +279,19 @@ def track_visit(request: Request, user_agent: str = Header(None)):
     if not user_agent:
         user_agent = "Unknown"
     user_agent = user_agent[:512]
-    
+
     device_type = "PC"
     ua_lower = user_agent.lower()
     if "mobile" in ua_lower or "android" in ua_lower or "iphone" in ua_lower:
         device_type = "Smartphone"
-        
+
     visitor = Visitor(
         device_type=device_type,
         user_agent=user_agent
     )
-    
+
     with Session(engine) as session:
         session.add(visitor)
         session.commit()
-    
-    return {"status": "ok"}
 
+    return {"status": "ok"}
