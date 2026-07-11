@@ -50,6 +50,12 @@ docker-compose up -d
 
 O container roda como **usuário não-root** (`appuser`) — melhoria de segurança.
 
+> ⚠ O `projects.db` no host precisa ter permissão de escrita para o `appuser` (uid 1000).
+> Rode uma vez no host:
+> ```bash
+> sudo chown 1000:1000 projects.db && sudo chmod 644 projects.db
+> ```
+
 O banco `projects.db` é persistido no diretório do projeto via volume mapeado.
 
 ## Segurança embutida
